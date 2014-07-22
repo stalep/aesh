@@ -204,7 +204,7 @@ public class AeshCommandLineParser implements CommandLineParser {
                             commandLine.addOption(active);
                             active = null;
                             if(addedArgument)
-                                commandLine.setParserException(new ArgumentParserException("An argument was given to an option that do not support it."));
+                                commandLine.setParserException(new ArgumentParserException("An argument was given to an option that does not support it."));
                         }
                     }
                 }
@@ -220,7 +220,7 @@ public class AeshCommandLineParser implements CommandLineParser {
                     commandLine.addOption(active);
                     active = null;
                     if(addedArgument)
-                        commandLine.setParserException(new ArgumentParserException("An argument was given to an option that do not support it."));
+                        commandLine.setParserException(new ArgumentParserException("An argument was given to an option that does not support it."));
                 }
                 else if(active == null)
                     commandLine.setParserException(new OptionParserException("Option: "+parseLine+" is not a valid option for this command"));
@@ -287,7 +287,7 @@ public class AeshCommandLineParser implements CommandLineParser {
                                 commandLine.addOption(active);
                                 active = null;
                                 if(addedArgument)
-                                    commandLine.setParserException( new OptionParserException("An argument was given to an option that do not support it."));
+                                    commandLine.setParserException( new OptionParserException("An argument was given to an option that does not support it."));
                             }
                         }
                     }
@@ -303,7 +303,7 @@ public class AeshCommandLineParser implements CommandLineParser {
                         commandLine.addOption(active);
                         active = null;
                         if(addedArgument)
-                            commandLine.setParserException(new OptionParserException("An argument was given to an option that do not support it."));
+                            commandLine.setParserException(new OptionParserException("An argument was given to an option that does not support it."));
                     }
                     else if(active == null)
                         commandLine.setParserException(new OptionParserException("Option: "+parseLine+" is not a valid option for this command"));
@@ -333,12 +333,12 @@ public class AeshCommandLineParser implements CommandLineParser {
                     active = null;
                 }
                 if(addedArgument)
-                    commandLine.setParserException(new OptionParserException("An argument was given to an option that do not support it."));
+                    commandLine.setParserException(new OptionParserException("An argument was given to an option that does not support it."));
             }
             //if no command is "active", we add it as an argument
             else {
                 if(command.getArgument() == null) {
-                    commandLine.setParserException(new OptionParserException("An argument was given to a command that do not support it."));
+                    commandLine.setParserException(new OptionParserException("An argument was given to a command that does not support it."));
                 }
                 else {
                     commandLine.addArgumentValue(parseLine);
