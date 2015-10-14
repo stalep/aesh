@@ -591,37 +591,31 @@ public class Console {
      */
     private void startReader() {
         reading = true;
-        Runnable reader = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while(read()) { }
-                }
-                finally {
-                    reading = false;
-                }
+        Runnable reader = () -> {
+            try {
+                while(read()) { }
+            }
+            finally {
+                reading = false;
             }
         };
         readerService.execute(reader);
     }
 
     private void startExecutor() {
-        Runnable reader = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while(!executorService.isShutdown()) {
-                        execute();
-                        Thread.sleep(10);
-                    }
+        Runnable reader = () -> {
+            try {
+                while(!executorService.isShutdown()) {
+                    execute();
+                    Thread.sleep(10);
                 }
-                catch (InterruptedException ie) {
-                    LOGGER.log(Level.WARNING, "Exception while executing:", ie);
-                }
-                finally {
-                    if(!initiateStop || running)
-                        stop();
-                }
+            }
+            catch (InterruptedException ie) {
+                LOGGER.log(Level.WARNING, "Exception while executing:", ie);
+            }
+            finally {
+                if(!initiateStop || running)
+                    stop();
             }
         };
         executorService.execute(reader);
