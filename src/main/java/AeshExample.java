@@ -53,6 +53,8 @@ import org.jboss.aesh.console.helper.ManProvider;
 import org.jboss.aesh.console.settings.Settings;
 import org.jboss.aesh.console.settings.SettingsBuilder;
 import org.jboss.aesh.io.Resource;
+import org.jboss.aesh.readline.KeyEvent;
+import org.jboss.aesh.readline.Keys;
 import org.jboss.aesh.terminal.CharacterType;
 import org.jboss.aesh.terminal.Color;
 import org.jboss.aesh.terminal.Key;
@@ -285,12 +287,15 @@ public class AeshExample {
                     .create();
 
             consoleBuffer.displayPrompt();
+            return null;
+            /*
                 String result;
                 do {
                     result = inputProcessor.parseOperation(invocation.getInput());
                 }
                 while(result == null );
                 return result;
+                */
         }
 
     }
@@ -355,7 +360,7 @@ public class AeshExample {
             this.shell = commandInvocation.getShell();
             if(bar) {
                 shell.out().print("are you sure you want bar? (y/n) ");
-                CommandOperation operation = null;
+                KeyEvent operation = null;
                 try {
                     operation = commandInvocation.getInput();
                 }
@@ -367,8 +372,8 @@ public class AeshExample {
             return CommandResult.SUCCESS;
         }
 
-        public void processOperation(CommandOperation operation) throws IOException {
-            if(operation.getInputKey() == Key.y) {
+        public void processOperation(KeyEvent operation) throws IOException {
+            if(operation == Keys.y) {
                 shell.out().println(Config.getLineSeparator()+"you wanted bar!");
             }
             else

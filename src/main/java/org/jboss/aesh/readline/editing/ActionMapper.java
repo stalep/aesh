@@ -10,8 +10,10 @@ import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.readline.KeyMapper;
 import org.jboss.aesh.readline.Keys;
+import org.jboss.aesh.readline.actions.BackwardChar;
 import org.jboss.aesh.readline.actions.EndOfLine;
 import org.jboss.aesh.readline.actions.Enter;
+import org.jboss.aesh.readline.actions.ForwardChar;
 import org.jboss.aesh.readline.actions.NextHistory;
 import org.jboss.aesh.readline.actions.PrevHistory;
 import org.jboss.aesh.readline.actions.StartOfLine;
@@ -22,7 +24,7 @@ import java.util.Map;
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
-class ActionMapper {
+public class ActionMapper {
 
     private Map<KeyEvent,Action> mapping;
 
@@ -40,8 +42,15 @@ class ActionMapper {
         mapping.put(Keys.CTRL_A, new StartOfLine());
         mapping.put(Keys.CTRL_E, new EndOfLine());
         mapping.put(Keys.CTRL_J, new Enter());
+        mapping.put(Keys.CTRL_M, new Enter());
         mapping.put(mapper.getActionEventByName("up"), new PrevHistory());
+        mapping.put(Keys.UP_FALLBACK, new PrevHistory());
         mapping.put(mapper.getActionEventByName("down"), new NextHistory());
+        mapping.put(Keys.DOWN_FALLBACK, new NextHistory());
+        mapping.put(mapper.getActionEventByName("left"), new BackwardChar());
+        mapping.put(Keys.LEFT_FALLBACK, new BackwardChar());
+        mapping.put(mapper.getActionEventByName("right"), new ForwardChar());
+        mapping.put(Keys.RIGHT_FALLBACK, new ForwardChar());
 
         return mapping;
     }
@@ -50,5 +59,8 @@ class ActionMapper {
         return mapping;
     }
 
+    public Action findAction(KeyEvent keyEvent) {
+        return mapping.get(keyEvent);
+    }
 
 }

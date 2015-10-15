@@ -25,6 +25,7 @@ import org.jboss.aesh.console.command.Command;
 import org.jboss.aesh.console.command.invocation.CommandInvocation;
 import org.jboss.aesh.console.command.CommandOperation;
 import org.jboss.aesh.console.operator.ControlOperator;
+import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.terminal.Shell;
 import org.jboss.aesh.util.ANSI;
@@ -140,7 +141,8 @@ public abstract class AeshFileDisplayer implements Command {
         }
     }
 
-    public void processOperation(CommandOperation operation) throws IOException {
+    public void processOperation(KeyEvent operation) throws IOException {
+        /*
         if(operation.getInputKey() == Key.q) {
             if(search == Search.SEARCHING) {
                 searchBuilder.append((char) operation.getInput()[0]);
@@ -327,6 +329,7 @@ public abstract class AeshFileDisplayer implements Command {
                 displayBottom();
             }
         }
+        */
     }
 
     private void display() throws IOException {

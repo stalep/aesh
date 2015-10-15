@@ -33,6 +33,8 @@ import org.jboss.aesh.edit.actions.Operation;
 import org.jboss.aesh.history.History;
 import org.jboss.aesh.history.SearchDirection;
 import org.jboss.aesh.parser.Parser;
+import org.jboss.aesh.readline.KeyEvent;
+import org.jboss.aesh.readline.editing.ActionMapper;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.undo.UndoAction;
 import org.jboss.aesh.util.ANSI;
@@ -63,6 +65,8 @@ public class AeshInputProcessor implements InputProcessor {
 
     private String returnValue;
 
+    private ActionMapper mapper;
+
     private static final Logger LOGGER = LoggerUtil.getLogger(AeshInputProcessor.class.getName());
 
     AeshInputProcessor(ConsoleBuffer consoleBuffer,
@@ -84,6 +88,8 @@ public class AeshInputProcessor implements InputProcessor {
         //make sure that search is disabled if history is
         if(!history.isEnabled())
             this.searchDisabled = true;
+
+        mapper = ActionMapper.getEmacs();
     }
 
     @Override
@@ -103,8 +109,19 @@ public class AeshInputProcessor implements InputProcessor {
     }
 
     @Override
-    public String parseOperation(CommandOperation commandOperation) throws IOException {
+    public String parseOperation(KeyEvent commandOperation) throws IOException {
+        returnValue = null;
+        org.jboss.aesh.readline.Action action = mapper.findAction(commandOperation);
 
+        if(action == null) {
+            LOGGER.info("could not find action for: "+commandOperation+" lets print it");
+            consoleBuffer.writeChars(commandOperation.buffer().array());
+        }
+        else {
+            action.apply(this);
+        }
+        return returnValue;
+        /*
         Operation operation = consoleBuffer.getEditMode().parseInput(commandOperation.getInputKey(),
                 consoleBuffer.getBuffer().getLine());
         int[] input;
@@ -275,6 +292,7 @@ public class AeshInputProcessor implements InputProcessor {
 
         return null;
 
+*/
     }
 
     @Override

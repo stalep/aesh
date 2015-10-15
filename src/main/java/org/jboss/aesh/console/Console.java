@@ -56,6 +56,9 @@ import org.jboss.aesh.history.History;
 import org.jboss.aesh.io.Resource;
 import org.jboss.aesh.parser.AeshLine;
 import org.jboss.aesh.parser.Parser;
+import org.jboss.aesh.readline.EventQueue;
+import org.jboss.aesh.readline.KeyEvent;
+import org.jboss.aesh.readline.KeyMapper;
 import org.jboss.aesh.terminal.CursorPosition;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.terminal.Shell;
@@ -90,7 +93,7 @@ public class Console {
     private ExportManager exportManager;
     private Shell shell;
 
-    private ArrayBlockingQueue<CommandOperation> inputQueue;
+    private ArrayBlockingQueue<KeyEvent> inputQueue;
 
     private ArrayBlockingQueue<int[]> cursorQueue;
     private volatile boolean readingCursor = false;
@@ -107,6 +110,8 @@ public class Console {
     private CompletionHandler completionHandler;
 
     private AeshStandardStream standardStream;
+
+    private EventQueue eventQueue;
 
     private static final Logger LOGGER = LoggerUtil.getLogger(Console.class.getName());
 
@@ -213,6 +218,8 @@ public class Console {
         completionHandler = new AeshCompletionHandler(context, consoleBuffer, shell, true);
         //enable completion for redirection
         completionHandler.addCompletion( new RedirectionCompletion());
+
+        eventQueue = new EventQueue(new KeyMapper());
 
         //enable aliasing
         if(settings.isAliasEnabled()) {
@@ -470,7 +477,7 @@ public class Console {
         inputProcessor.clearBufferAndDisplayPrompt();
     }
 
-    protected CommandOperation getInput() throws InterruptedException {
+    protected KeyEvent getInput() throws InterruptedException {
         return inputQueue.take();
     }
 
@@ -665,7 +672,11 @@ public class Console {
         //use a position instead of changing the array
         int position = 0;
         //if we get a paste or have input lag this should parse it correctly...
-        while(parsing) {
+        eventQueue.append(input);
+        while(eventQueue.hasNext()) {
+            KeyEvent key = eventQueue.next();
+            inputQueue.put(key);
+            /*
             Key inc = Key.findStartKey(input, position);
             if(input.length > inc.getKeyValues().length+position) {
                 position += inc.getKeyValues().length;
@@ -689,6 +700,7 @@ public class Console {
             else {
                 inputQueue.put(new CommandOperation(inc, input, position));
             }
+            */
         }
     }
 
@@ -712,7 +724,7 @@ public class Console {
         }
     }
 
-    private void processInternalOperation(CommandOperation commandOperation) throws IOException {
+    private void processInternalOperation(KeyEvent commandOperation) throws IOException {
         String result = inputProcessor.parseOperation(commandOperation);
         if(result != null)
             processOperationResult(result);

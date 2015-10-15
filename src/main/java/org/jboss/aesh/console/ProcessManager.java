@@ -20,6 +20,8 @@
 package org.jboss.aesh.console;
 
 import org.jboss.aesh.console.command.CommandOperation;
+import org.jboss.aesh.readline.KeyEvent;
+import org.jboss.aesh.readline.Keys;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.util.LoggerUtil;
 
@@ -80,11 +82,11 @@ public class ProcessManager {
         return processes.get(pid);
     }
 
-    public CommandOperation getInput(int pid) throws InterruptedException {
+    public KeyEvent getInput(int pid) throws InterruptedException {
         if(foregroundProcess == pid)
             return console.getInput();
         else
-            return new CommandOperation(Key.UNKNOWN, new int[]{});
+            return Keys.CTRL_CARRET;
     }
 
     public String getInputLine(int pid) throws InterruptedException {

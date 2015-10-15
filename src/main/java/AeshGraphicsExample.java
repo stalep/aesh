@@ -32,6 +32,7 @@ import org.jboss.aesh.console.settings.SettingsBuilder;
 import org.jboss.aesh.graphics.AeshGraphicsConfiguration;
 import org.jboss.aesh.graphics.Graphics;
 import org.jboss.aesh.graphics.GraphicsConfiguration;
+import org.jboss.aesh.readline.Keys;
 import org.jboss.aesh.terminal.Color;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.terminal.TerminalColor;
@@ -88,7 +89,7 @@ public class AeshGraphicsExample {
 
         public void waitForInput() {
             try {
-                while(!invocation.getInput().getInputKey().equals(Key.q)) {
+                while(!invocation.getInput().equals(Keys.q)) {
 
                 }
             }

@@ -24,6 +24,7 @@ import org.jboss.aesh.console.Prompt;
 import org.jboss.aesh.console.command.CommandOperation;
 import org.jboss.aesh.console.command.registry.CommandRegistry;
 import org.jboss.aesh.console.operator.ControlOperator;
+import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.terminal.Shell;
 
 /**
@@ -80,7 +81,7 @@ public interface CommandInvocation {
      * @return user input
      * @throws InterruptedException
      */
-    CommandOperation getInput() throws InterruptedException;
+    KeyEvent getInput() throws InterruptedException;
 
     /**
      * A blocking call that will return user input from the terminal

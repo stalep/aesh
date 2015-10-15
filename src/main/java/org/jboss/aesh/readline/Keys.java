@@ -58,6 +58,16 @@ public enum Keys implements KeyEvent {
 
   A("A", 'A'), B("B", 'B'), C("C", 'C'), QUOTE("\"", '"'),
   BACKSLASH("\\", '\\'),
+  a("a", 'a'),
+  y("y", 'y'),
+  n("n", 'n'),
+  N("N", 'N'),
+  q("q", 'q'),
+
+  UP_FALLBACK("", 27, 91, 65),
+  DOWN_FALLBACK("", 27, 91, 66),
+  RIGHT_FALLBACK("", 27, 91, 67 ),
+  LEFT_FALLBACK("", 27, 91, 68 ),
 
   SHIFT_RIGHT("", 27, ']', '1', ';', '2', 'C'),
   SHIFT_LEFT("", 27, ']', '1', ';', '2', 'D');

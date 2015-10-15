@@ -16,10 +16,13 @@
 
 package org.jboss.aesh.readline;
 
+import org.jboss.aesh.util.LoggerUtil;
+
 import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -29,6 +32,8 @@ public class EventQueue implements Iterator<KeyEvent> {
   private KeyEvent[] bindings;
   private final LinkedList<KeyEvent> events = new LinkedList<>();
   private int[] pending = new int[0];
+
+  private static final Logger LOGGER = LoggerUtil.getLogger(EventQueue.class.getName());
 
   public EventQueue(KeyMapper keymap) {
     this.bindings = keymap.getEvents().toArray(new KeyEvent[keymap.getEvents().size()]);

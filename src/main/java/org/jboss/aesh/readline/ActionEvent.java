@@ -6,6 +6,8 @@
  */
 package org.jboss.aesh.readline;
 
+import java.util.Arrays;
+
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
@@ -37,5 +39,13 @@ class ActionEvent implements KeyEvent {
   @Override
   public int length() {
     return seq.length;
+  }
+
+  @Override
+  public String toString() {
+    return "ActionEvent{" +
+            "name='" + name + '\'' +
+            ", seq=" + Arrays.toString(seq) +
+            '}';
   }
 }

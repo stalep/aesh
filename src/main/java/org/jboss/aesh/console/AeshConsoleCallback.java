@@ -20,6 +20,7 @@
 package org.jboss.aesh.console;
 
 import org.jboss.aesh.console.command.CommandOperation;
+import org.jboss.aesh.readline.KeyEvent;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -32,12 +33,13 @@ public abstract class AeshConsoleCallback implements ConsoleCallback {
     }
 
     @Override
-    public CommandOperation getInput() throws InterruptedException {
+    public KeyEvent getInput() throws InterruptedException {
         if( process != null ) {
             return process.getInput();
         }
         else {
-            return new CommandOperation(null, null, 0);
+            return null;
+            //return new CommandOperation(null, null, 0);
         }
     }
 

@@ -21,6 +21,7 @@ package org.jboss.aesh.console;
 
 import org.jboss.aesh.console.command.CommandOperation;
 import org.jboss.aesh.console.command.CommandResult;
+import org.jboss.aesh.readline.KeyEvent;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -67,7 +68,7 @@ public class AeshProcess implements Runnable, Process {
     }
 
     @Override
-    public CommandOperation getInput() throws InterruptedException {
+    public KeyEvent getInput() throws InterruptedException {
         return manager.getInput(getPID());
     }
 

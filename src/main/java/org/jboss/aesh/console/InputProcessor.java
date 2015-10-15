@@ -21,6 +21,7 @@ package org.jboss.aesh.console;
 
 import org.jboss.aesh.console.command.CommandOperation;
 import org.jboss.aesh.history.History;
+import org.jboss.aesh.readline.KeyEvent;
 
 import java.io.IOException;
 
@@ -29,7 +30,7 @@ import java.io.IOException;
  */
 public interface InputProcessor {
 
-    String parseOperation(CommandOperation operation) throws IOException;
+    String parseOperation(KeyEvent operation) throws IOException;
 
     History getHistory();
 
