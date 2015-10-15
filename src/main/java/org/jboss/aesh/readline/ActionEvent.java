@@ -48,4 +48,23 @@ class ActionEvent implements KeyEvent {
             ", seq=" + Arrays.toString(seq) +
             '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if(this == o) return true;
+    if(!(o instanceof ActionEvent)) return false;
+
+    ActionEvent that = (ActionEvent) o;
+
+    if(!name.equals(that.name)) return false;
+    return Arrays.equals(seq, that.seq);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name.hashCode();
+    result = 31 * result + Arrays.hashCode(seq);
+    return result;
+  }
 }

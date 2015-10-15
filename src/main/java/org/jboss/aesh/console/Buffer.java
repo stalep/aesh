@@ -19,7 +19,10 @@
  */
 package org.jboss.aesh.console;
 
+import org.jboss.aesh.util.LoggerUtil;
+
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * A simple buffer to keep track of one line in the console
@@ -39,6 +42,8 @@ public class Buffer {
     private static boolean ansi = true;
 
     private static final int TAB = 4;
+
+    private static final Logger LOGGER = LoggerUtil.getLogger(Buffer.class.getName());
 
     protected Buffer(boolean ansi) {
         this(ansi, null);
@@ -132,7 +137,7 @@ public class Buffer {
             return getCursor() + getPrompt().getLength()+1;
     }
 
-    protected Prompt getPrompt() {
+    public Prompt getPrompt() {
         if(!isMultiLine())
             return prompt;
         else
@@ -378,9 +383,20 @@ public class Buffer {
         }
     }
 
-    protected void delete(int start, int end) {
+    public void delete(int start, int end) {
         delta = start - end;
+        LOGGER.info("doDelete, start:"+start+", end:"+end+", line: "+line);
         line.delete(start, end);
+    }
+
+    public void delete(int delta) {
+        LOGGER.info("deleting: "+delta+", cursor: "+getCursor()+" line: "+line);
+        if(delta < 0) {
+            delete(getCursor()-delta, (getCursor()));
+        }
+        else
+            delete(getCursor(), (getCursor()+delta));
+        LOGGER.info("AFTER: deleting: "+delta+", cursor: "+getCursor()+" line: "+line);
     }
 
     protected void insert(int start, String in) {

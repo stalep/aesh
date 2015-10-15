@@ -118,6 +118,7 @@ public class AeshInputProcessor implements InputProcessor {
             consoleBuffer.writeChars(commandOperation.buffer().array());
         }
         else {
+            LOGGER.info("found action, applying: "+action);
             action.apply(this);
         }
         return returnValue;

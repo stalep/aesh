@@ -11,6 +11,9 @@ import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.readline.KeyMapper;
 import org.jboss.aesh.readline.Keys;
 import org.jboss.aesh.readline.actions.BackwardChar;
+import org.jboss.aesh.readline.actions.DeleteChar;
+import org.jboss.aesh.readline.actions.DeleteNextChar;
+import org.jboss.aesh.readline.actions.DeletePrevChar;
 import org.jboss.aesh.readline.actions.EndOfLine;
 import org.jboss.aesh.readline.actions.Enter;
 import org.jboss.aesh.readline.actions.ForwardChar;
@@ -51,6 +54,8 @@ public class ActionMapper {
         mapping.put(Keys.LEFT_FALLBACK, new BackwardChar());
         mapping.put(mapper.getActionEventByName("right"), new ForwardChar());
         mapping.put(Keys.RIGHT_FALLBACK, new ForwardChar());
+        mapping.put(Keys.BACKSPACE, new DeletePrevChar());
+        mapping.put(mapper.getActionEventByName("delete"), new DeleteChar());
 
         return mapping;
     }

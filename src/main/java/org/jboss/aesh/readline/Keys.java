@@ -16,6 +16,8 @@
 
 package org.jboss.aesh.readline;
 
+import org.jboss.aesh.console.Config;
+
 /**
  * Goal : translate a codepoint sequence into a symbol.
  *
@@ -68,9 +70,11 @@ public enum Keys implements KeyEvent {
   DOWN_FALLBACK("", 27, 91, 66),
   RIGHT_FALLBACK("", 27, 91, 67 ),
   LEFT_FALLBACK("", 27, 91, 68 ),
+  BACKSPACE("", Config.isOSPOSIXCompatible() ? 127 : 8),
 
   SHIFT_RIGHT("", 27, ']', '1', ';', '2', 'C'),
   SHIFT_LEFT("", 27, ']', '1', ';', '2', 'D');
+
 
 
   final String name;
