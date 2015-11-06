@@ -286,10 +286,10 @@ public class ExecPty implements Pty {
     private static String exec(final String... cmd) throws IOException {
         assert cmd != null;
         try {
-            LOGGER.log(Level.FINEST, "Running: ", cmd);
+            LOGGER.log(Level.INFO, "Running: ", cmd);
             Process p = new ProcessBuilder(cmd).start();
             String result = ExecHelper.waitAndCapture(p);
-            LOGGER.log(Level.FINEST, "Result: ", result);
+            LOGGER.log(Level.INFO, "Result: ", result);
             if (p.exitValue() != 0) {
                 throw new IOException("Error executing '" + String.join(" ", cmd) + "': " + result);
             }

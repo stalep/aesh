@@ -128,7 +128,6 @@ public class Console {
         catch (IOException e) {
             LOGGER.severe("Æsh failed during setup: " + e.getMessage());
         }
-
     }
 
     @Override

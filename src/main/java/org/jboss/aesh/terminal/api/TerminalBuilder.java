@@ -69,6 +69,11 @@ public final class TerminalBuilder {
         return this;
     }
 
+    public TerminalBuilder nativeSignals(boolean nativeSignals) {
+        this.nativeSignals = nativeSignals;
+        return this;
+    }
+
     public TerminalBuilder type(String type) {
         this.type = type;
         return this;

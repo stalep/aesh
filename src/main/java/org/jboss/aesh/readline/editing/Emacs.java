@@ -21,6 +21,7 @@ package org.jboss.aesh.readline.editing;
 
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.ActionEvent;
+import org.jboss.aesh.readline.Function;
 import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.readline.Variable;
 import org.jboss.aesh.readline.actions.ActionMapper;
@@ -44,6 +45,7 @@ public class Emacs implements EditMode {
     private Map<Key,Action> actions;
     private Map<Variable,String> variables;
     private Map<KeyEvent,Action> keyEventActions;
+    private Map<Key, Function> functions;
 
     //counting how many times eof been pressed
     protected int eofCounter;
@@ -56,6 +58,7 @@ public class Emacs implements EditMode {
         actions = new EnumMap<>(Key.class);
         variables = new EnumMap<>(Variable.class);
         keyEventActions = new HashMap<>();
+         functions = new EnumMap<>(Key.class);
     }
 
     @Override
@@ -159,6 +162,17 @@ public class Emacs implements EditMode {
             currentAction.input(action, event);
         }
         return action;
+    }
+
+     public void addFunction(Key key, Function action) {
+        functions.put(key, action);
+    }
+
+    public Function parseTest(KeyEvent event) {
+        if(event instanceof Key)
+            return functions.get(event);
+        else
+            return null;
     }
 
 }
