@@ -19,7 +19,7 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -46,38 +46,45 @@ abstract class ForwardWord extends ChangeAction {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        int cursor = inputProcessor.getBuffer().getBuffer().getMultiCursor();
-        String buffer = inputProcessor.getBuffer().getBuffer().getLine();
+    public void apply(Readline.Interaction interaction) {
+        int cursor = interaction.buffer().getCursor();
+        //String buffer = inputProcessor.getBuffer().getBuffer().getLine();
 
         if(viMode) {
-            if(cursor < buffer.length() && (isDelimiter(buffer.charAt(cursor))))
-                while(cursor < buffer.length() && (isDelimiter(buffer.charAt(cursor))))
+            if(cursor < interaction.buffer().size() && (isDelimiter(interaction.buffer().getAt(cursor))))
+                while(cursor < interaction.buffer().size() &&
+                        (isDelimiter(interaction.buffer().getAt(cursor))))
                     cursor++;
                 //if we stand on a non-delimiter
             else {
-                while(cursor < buffer.length() && !isDelimiter(buffer.charAt(cursor)))
+                while(cursor < interaction.buffer().size() &&
+                        !isDelimiter(interaction.buffer().getAt(cursor)))
                     cursor++;
                 //if we end up on a space we move past that too
                 if(removeTrailingSpaces)
-                    if(cursor < buffer.length() && isSpace(buffer.charAt(cursor)))
-                        while(cursor < buffer.length() && isSpace(buffer.charAt(cursor)))
+                    if(cursor < interaction.buffer().size() && isSpace(interaction.buffer().getAt(cursor)))
+                        while(cursor < interaction.buffer().size() &&
+                                isSpace(interaction.buffer().getAt(cursor)))
                             cursor++;
             }
         }
         else {
-            while (cursor < buffer.length() && (isDelimiter(buffer.charAt(cursor))))
+            while (cursor < interaction.buffer().size() &&
+                    (isDelimiter(interaction.buffer().getAt(cursor))))
                 cursor++;
-            while (cursor < buffer.length() && !isDelimiter(buffer.charAt(cursor)))
+            while (cursor < interaction.buffer().size()&
+                    !isDelimiter(interaction.buffer().getAt(cursor)))
                 cursor++;
         }
 
         //if we end up on a space we move past that too
         if(removeTrailingSpaces)
-            if(cursor < buffer.length() && isSpace(buffer.charAt(cursor)))
-                while(cursor < buffer.length() && isSpace(buffer.charAt(cursor)))
+            if(cursor < interaction.buffer().size() &&
+                    isSpace(interaction.buffer().getAt(cursor)))
+                while(cursor < interaction.buffer().size() &&
+                        isSpace(interaction.buffer().getAt(cursor)))
                     cursor++;
 
-        apply(cursor, inputProcessor);
+        apply(cursor, interaction);
     }
 }

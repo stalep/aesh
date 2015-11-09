@@ -21,6 +21,7 @@ package org.jboss.aesh.console;
 
 import org.jboss.aesh.complete.Completion;
 import org.jboss.aesh.console.alias.AliasManager;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -41,7 +42,7 @@ public interface CompletionHandler {
 
     int getAskCompletionSize();
 
-    void complete(InputProcessor inputProcessor);
+    void complete(Readline.Interaction interaction);
 
     void setAliasManager(AliasManager aliasManager);
 }

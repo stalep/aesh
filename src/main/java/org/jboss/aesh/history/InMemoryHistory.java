@@ -19,6 +19,8 @@
  */
 package org.jboss.aesh.history;
 
+import org.jboss.aesh.util.Helper;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +70,11 @@ public class InMemoryHistory extends History {
     }
 
     @Override
+    public void push(int[] entry) {
+        push(Helper.fromCodePoints(entry));
+    }
+
+    @Override
     public String find(String search) {
         int index = historyList.indexOf(search);
         if(index >= 0) {
@@ -83,7 +90,12 @@ public class InMemoryHistory extends History {
         return historyList.get(index);
     }
 
-   @Override
+    @Override
+    public int[] getAsInts(int index) {
+        return historyList.get(index).chars().toArray();
+    }
+
+    @Override
     public int size() {
        return historyList.size();
    }

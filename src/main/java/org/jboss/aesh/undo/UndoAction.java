@@ -19,15 +19,22 @@
  */
 package org.jboss.aesh.undo;
 
+import org.jboss.aesh.parser.Parser;
+
 /**
  * @author Ståle W. Pedersen <stale.pedersen@jboss.org>
  */
 public class UndoAction {
 
     private int cursorPosition;
-    private String buffer;
+    private int[] buffer;
 
     public UndoAction(int cursorPosition, String buffer) {
+        setCursorPosition(cursorPosition);
+        setBuffer(Parser.toCodePoints(buffer));
+    }
+
+    public UndoAction(int cursorPosition, int[] buffer) {
         setCursorPosition(cursorPosition);
         setBuffer(buffer);
     }
@@ -40,11 +47,11 @@ public class UndoAction {
         this.cursorPosition = cursorPosition;
     }
 
-    public String getBuffer() {
+    public int[] getBuffer() {
         return buffer;
     }
 
-    private void setBuffer(String buffer) {
+    private void setBuffer(int[] buffer) {
         this.buffer = buffer;
     }
 }

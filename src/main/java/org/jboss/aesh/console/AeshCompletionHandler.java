@@ -26,6 +26,8 @@ import org.jboss.aesh.console.alias.AliasManager;
 import org.jboss.aesh.console.operator.ControlOperatorParser;
 import org.jboss.aesh.console.operator.RedirectionCompletion;
 import org.jboss.aesh.parser.Parser;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.actions.ActionMapper;
 import org.jboss.aesh.terminal.TerminalString;
 import org.jboss.aesh.util.LoggerUtil;
@@ -109,8 +111,8 @@ public class AeshCompletionHandler implements CompletionHandler {
      *    but not more than 100 at once
      */
     @Override
-    public void complete(InputProcessor inputProcessor) {
-        Buffer buffer = inputProcessor.getBuffer().getBuffer();
+    public void complete(Readline.Interaction interaction) {
+        LineBuffer buffer = interaction.buffer();
         PrintStream out = inputProcessor.getBuffer().out();
         if(!enabled)
             return;

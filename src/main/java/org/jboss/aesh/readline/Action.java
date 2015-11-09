@@ -19,8 +19,6 @@
  */
 package org.jboss.aesh.readline;
 
-import org.jboss.aesh.console.InputProcessor;
-
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
@@ -28,6 +26,5 @@ public interface Action {
 
     String name();
 
-    void apply(InputProcessor inputProcessor);
-
+    void apply(Readline.Interaction interaction);
 }

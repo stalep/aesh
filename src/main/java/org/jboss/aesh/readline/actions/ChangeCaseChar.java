@@ -20,8 +20,10 @@
 
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
+import org.jboss.aesh.undo.UndoAction;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -33,19 +35,16 @@ public class ChangeCaseChar implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        if(inputProcessor.getBuffer().getBuffer().getLine().length() >=
-                inputProcessor.getBuffer().getBuffer().getMultiCursor()) {
-            inputProcessor.getBuffer().addActionToUndoStack();
-            char c = inputProcessor.getBuffer().getBuffer().getLine().charAt(inputProcessor.getBuffer().getBuffer().getMultiCursor());
-            if(Character.isUpperCase(c))
-                inputProcessor.getBuffer().getBuffer().replaceChar(Character.toLowerCase(c),
-                        inputProcessor.getBuffer().getBuffer().getMultiCursor());
-            else
-                inputProcessor.getBuffer().getBuffer().replaceChar(Character.toUpperCase(c),
-                        inputProcessor.getBuffer().getBuffer().getMultiCursor());
-            inputProcessor.getBuffer().drawLine();
-            inputProcessor.getBuffer().moveCursor(1);
+    public void apply(Readline.Interaction interaction) {
+        if(interaction.buffer().size() >= interaction.buffer().getCursor()) {
+            interaction.getUndoManager().addUndo(new UndoAction(
+                    interaction.buffer().getCursor(),
+                    interaction.buffer().toArray()));
+
+            LineBuffer buf = interaction.buffer().copy();
+            buf.changeCase();
+            interaction.refresh(buf);
+            interaction.resume();
         }
 
     }

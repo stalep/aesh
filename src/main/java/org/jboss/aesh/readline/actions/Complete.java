@@ -20,10 +20,10 @@
 package org.jboss.aesh.readline.actions;
 
 import org.jboss.aesh.console.Config;
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.ActionEvent;
 import org.jboss.aesh.readline.KeyEvent;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.terminal.Key;
 
 /**
@@ -40,26 +40,31 @@ public class Complete implements ActionEvent {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
+    public void apply(Readline.Interaction interaction) {
         if(askForCompletion) {
             askForCompletion = false;
             if(key == Key.y) {
                 //inputProcessor.getCompleter().setAskDisplayCompletion(false);
-                inputProcessor.getCompleter().complete(inputProcessor);
+                interaction.completionHandler().complete(interaction);
             }
             else {
-                inputProcessor.getCompleter().setAskDisplayCompletion(false);
-                inputProcessor.getBuffer().getUndoManager().clear();
+                interaction.completionHandler().setAskDisplayCompletion(false);
+                interaction.getUndoManager().clear();
+                interaction.conn.write(Config.getLineSeparator());
+                interaction.buffer().clear();
+                interaction.resume();
+                /*
                 inputProcessor.getBuffer().out().print(Config.getLineSeparator());
                 inputProcessor.clearBufferAndDisplayPrompt();
                 inputProcessor.getBuffer().drawLine();
                 inputProcessor.getBuffer().moveCursor(inputProcessor.getBuffer().getBuffer().getMultiCursor());
+                */
             }
         }
         else {
-            if(inputProcessor.getCompleter() != null) {
-                inputProcessor.getCompleter().complete( inputProcessor);
-                if(inputProcessor.getCompleter().doAskDisplayCompletion()) {
+            if(interaction.completionHandler() != null) {
+                interaction.completionHandler().complete( interaction);
+                if(interaction.completionHandler().doAskDisplayCompletion()) {
                     askForCompletion = true;
                 }
             }

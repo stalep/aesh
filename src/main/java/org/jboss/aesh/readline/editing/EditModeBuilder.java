@@ -153,6 +153,7 @@ public class EditModeBuilder {
         emacs.addAction(Key.UNIT_SEPARATOR, "undo");
         emacs.addAction(Key.CTRL_R, "reverse-search-history");
         emacs.addAction(Key.CTRL_S, "forward-search-history");
+        emacs.addAction(Key.CTRL_L, "clear-screen"); //ctrl-l
 
         return emacs;
     }

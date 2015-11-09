@@ -43,9 +43,13 @@ public abstract class History {
 
     public abstract void push(String entry);
 
+    public abstract void push(int[] entry);
+
     public abstract String find(String search);
 
     public abstract String get(int index);
+
+    abstract int[] getAsInts(int index);
 
     public abstract int size();
 

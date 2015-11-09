@@ -26,11 +26,11 @@ import org.jboss.aesh.readline.Action;
  */
 abstract class MovementAction implements Action{
 
-    protected boolean isSpace(char c) {
+    protected boolean isSpace(int c) {
         return Character.isWhitespace(c);
     }
 
-    protected boolean isDelimiter(char c) {
+    protected boolean isDelimiter(int c) {
         return !Character.isLetterOrDigit(c);
     }
 

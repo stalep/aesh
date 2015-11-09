@@ -19,7 +19,7 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -31,13 +31,17 @@ public class ChangeEndOfLine extends ChangeAction {
         super(EditMode.Status.CHANGE);
     }
 
+    public ChangeEndOfLine(boolean viMode) {
+        super(viMode, EditMode.Status.CHANGE);
+    }
+
     @Override
     public String name() {
         return "change-end-of-line";
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-
+    public void apply(Readline.Interaction interaction) {
+        apply(interaction.buffer().size(), interaction);
     }
 }

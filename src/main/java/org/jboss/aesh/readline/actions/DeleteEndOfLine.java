@@ -19,7 +19,7 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -41,8 +41,7 @@ public class DeleteEndOfLine extends ChangeAction {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        int cursor = inputProcessor.getBuffer().getBuffer().getLine().length();
-        apply(cursor, inputProcessor);
+    public void apply(Readline.Interaction interaction) {
+        apply(interaction.buffer().size(), interaction);
     }
 }

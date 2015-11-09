@@ -29,6 +29,7 @@ import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.console.Config;
 import org.jboss.aesh.terminal.TerminalString;
 import org.jboss.aesh.terminal.api.Size;
+import org.jboss.aesh.util.Point;
 import org.jboss.aesh.util.Wcwidth;
 
 /**
@@ -803,15 +804,15 @@ public class Parser {
    * @param width the screen width
    * @return the height
    */
-  public static Size computePosition(int[] codePoints, Size origin, int offset, int width) {
+  public static Point computePosition(int[] codePoints, Point origin, int offset, int width) {
     if (offset < 0) {
       throw new IndexOutOfBoundsException("Offset cannot be negative");
     }
     if (offset > codePoints.length) {
       throw new IndexOutOfBoundsException("Offset cannot bebe greater than the length");
     }
-    int col = origin.getWidth();
-    int row = origin.getHeight();
+    int col = origin.x();
+    int row = origin.y();
     for (int i = 0;i < offset;i++) {
       int cp = codePoints[i];
       int w = Wcwidth.of(cp);
@@ -837,7 +838,7 @@ public class Parser {
         }
       }
     }
-    return new Size(col, row);
+    return new Point(col, row);
   }
 
 }

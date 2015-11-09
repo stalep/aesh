@@ -20,6 +20,7 @@
 package org.jboss.aesh.readline.actions;
 
 import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -40,35 +41,33 @@ abstract class BackwardWord extends ChangeAction {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        int cursor = inputProcessor.getBuffer().getBuffer().getMultiCursor();
+    public void apply(Readline.Interaction interaction) {
+        int cursor = interaction.buffer().getCursor();
         //the cursor position might be > the buffer
-        if(cursor > inputProcessor.getBuffer().getBuffer().getLine().length())
-            cursor = inputProcessor.getBuffer().getBuffer().getLine().length() - 1;
 
         if(viMode) {
-            String buffer = inputProcessor.getBuffer().getBuffer().getLine();
-            while(cursor > 0 && isSpace(buffer.charAt(cursor - 1)))
+            //String buffer = interaction.buffer().toString();
+            while(cursor > 0 && isSpace((char) interaction.buffer().getAt(cursor - 1)))
                 cursor--;
-            if(cursor > 0 && isDelimiter(buffer.charAt(cursor - 1))) {
-                while(cursor > 0 && isDelimiter(buffer.charAt(cursor - 1)) && !isSpace(buffer.charAt(cursor-1)))
+            if(cursor > 0 && isDelimiter((char) interaction.buffer().getAt(cursor - 1))) {
+                while(cursor > 0 && isDelimiter((char) interaction.buffer().getAt(cursor -1))
+                         && !isSpace((char) interaction.buffer().getAt(cursor-1)))
                     cursor--;
             }
             else {
-                while(cursor > 0 && !isDelimiter(buffer.charAt(cursor - 1))) {
+                while(cursor > 0 && !isDelimiter((char) interaction.buffer().getAt(cursor - 1))) {
                     cursor--;
                 }
             }
         }
         else {
-            String buffer = inputProcessor.getBuffer().getBuffer().getLine();
-            while (cursor > 0 && isDelimiter(buffer.charAt(cursor - 1)))
+            while (cursor > 0 && isDelimiter((char) interaction.buffer().getAt(cursor - 1)))
                 cursor--;
-            while (cursor > 0 && !isDelimiter(buffer.charAt(cursor - 1)))
+            while (cursor > 0 && !isDelimiter((char) interaction.buffer().getAt(cursor - 1)))
                 cursor--;
         }
 
-        apply(cursor, inputProcessor);
+        apply(cursor, interaction);
     }
 
 }

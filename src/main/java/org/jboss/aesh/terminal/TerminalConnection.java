@@ -38,7 +38,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -58,25 +57,36 @@ public class TerminalConnection implements TtyConnection {
 
     private TtyEventDecoder eventDecoder;
     private BinaryDecoder decoder;
-    private Consumer<int[]> stdout;
-    private ExecutorService executorService;
+    private Consumer<int[]> stdOut;
     private Attributes attributes;
+    private BiConsumer<TtyEvent, Integer> eventHandler;
+
 
     public TerminalConnection(InputStream inputStream, OutputStream outputStream) {
         try {
             terminal = TerminalBuilder.builder()
             .streams(inputStream, outputStream)
-                    .nativeSignals(false)
+                    .nativeSignals(true)
             .name("Aesh console")
             .build();
 
+            terminal.handle(Terminal.Signal.INT, s -> {
+                if(getEventHandler() != null) {
+                    getEventHandler().accept(TtyEvent.INTR, 3);
+                }
+                else
+                    LOGGER.info("no eventhandler is registered");
+            });
+
+            terminal.handle(Terminal.Signal.WINCH, s -> {
+                if(getSizeHandler() != null) {
+                    getSizeHandler().accept(size());
+                }
+            });
+
             eventDecoder = new TtyEventDecoder(3, 26, 4);
             decoder = new BinaryDecoder(1024, StandardCharsets.UTF_8, eventDecoder);
-            stdout = new TtyOutputMode(new BinaryEncoder(StandardCharsets.UTF_8, this::write));
-
-            terminal.handle(Terminal.Signal.INT, s -> LOGGER.info("GOT INTERRUPTED::::"+s));
-
-            LOGGER.info("started connection, trying to start reader:");
+            stdOut = new TtyOutputMode(new BinaryEncoder(StandardCharsets.UTF_8, this::write));
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -90,39 +100,30 @@ public class TerminalConnection implements TtyConnection {
     }
 
     public void startReading() {
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable runnable) {
-                Thread inputThread = Executors.defaultThreadFactory().newThread(runnable);
-                inputThread.setName("Aesh InputStream Reader");
-                inputThread.setDaemon(true);
-                return inputThread;
-            }
+        ExecutorService executorService = Executors.newSingleThreadExecutor(runnable -> {
+            Thread inputThread = Executors.defaultThreadFactory().newThread(runnable);
+            inputThread.setName("Aesh InputStream Reader");
+            inputThread.setDaemon(true);
+            return inputThread;
         });
 
-        executorService.execute(new Runnable() {
-            byte[] bBuf = new byte[1024];
-            @Override
-            public void run() {
-                try {
-                    attributes = terminal.enterRawMode();
-                    LOGGER.info("reading data");
-                    while(true) {
-                        int read = terminal.input().read(bBuf);
-                        if(read > 0) {
-                            LOGGER.info("got data, pushing to decoder.");
-                            decoder.write(bBuf, 0, read);
-                        }
-                        else if(read < 0) {
-                            close();
-                            return;
-                        }
-
+        executorService.execute(() -> {
+            try {
+                byte[] bBuf = new byte[1024];
+                attributes = terminal.enterRawMode();
+                LOGGER.info("reading data");
+                while (true) {
+                    int read = terminal.input().read(bBuf);
+                    if (read > 0) {
+                        decoder.write(bBuf, 0, read);
+                    } else if (read < 0) {
+                        close();
+                        return;
                     }
                 }
-                catch(IOException ioe) {
-                    ioe.printStackTrace();
-                }
+            }
+            catch (IOException ioe) {
+                ioe.printStackTrace();
             }
         });
     }
@@ -138,7 +139,6 @@ public class TerminalConnection implements TtyConnection {
 
     @Override
     public Size size() {
-        LOGGER.info("getting size: "+terminal.getSize());
         return terminal.getSize();
     }
 
@@ -170,12 +170,12 @@ public class TerminalConnection implements TtyConnection {
 
     @Override
     public BiConsumer<TtyEvent, Integer> getEventHandler() {
-        return eventDecoder.getEventHandler();
+        return eventHandler;
     }
 
     @Override
     public void setEventHandler(BiConsumer<TtyEvent, Integer> handler) {
-        eventDecoder.setEventHandler(handler);
+        eventHandler = handler;
     }
 
     @Override
@@ -190,7 +190,7 @@ public class TerminalConnection implements TtyConnection {
 
     @Override
     public Consumer<int[]> stdoutHandler() {
-        return stdout;
+        return stdOut;
     }
 
     @Override

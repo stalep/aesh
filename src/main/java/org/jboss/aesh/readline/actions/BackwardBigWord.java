@@ -20,6 +20,7 @@
 package org.jboss.aesh.readline.actions;
 
 import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -34,22 +35,19 @@ abstract class BackwardBigWord extends ChangeAction {
     BackwardBigWord(boolean viMode, EditMode.Status status) {
         super(viMode, status);
     }
-    @Override
-    public void apply(InputProcessor inputProcessor) {
-        int cursor = inputProcessor.getBuffer().getBuffer().getMultiCursor();
-        String buffer = inputProcessor.getBuffer().getBuffer().getLine();
 
-        if(cursor > buffer.length())
-            cursor = buffer.length()-1;
+    @Override
+    public void apply(Readline.Interaction interaction) {
+        int cursor = interaction.buffer().getCursor();
 
         //move back every potential space first
-        while(cursor > 0 && isSpace(buffer.charAt(cursor-1)))
+        while(cursor > 0 && isSpace((char) interaction.buffer().getAt(cursor - 1)))
             cursor--;
 
-        while(cursor > 0 && !isSpace(buffer.charAt(cursor-1)))
+        while(cursor > 0 && !isSpace((char) interaction.buffer().getAt(cursor - 1)))
             cursor--;
 
-        apply(cursor, inputProcessor);
+        apply(cursor, interaction);
     }
 
 }

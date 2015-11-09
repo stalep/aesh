@@ -32,7 +32,7 @@ public class UndoManager {
     private int counter;
 
     public UndoManager() {
-        undoStack = new Stack<UndoAction>();
+        undoStack = new Stack<>();
         undoStack.setSize(UNDO_SIZE);
         counter = 0;
     }

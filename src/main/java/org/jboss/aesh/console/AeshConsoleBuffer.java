@@ -26,6 +26,7 @@ import org.jboss.aesh.readline.editing.EditMode;
 import org.jboss.aesh.undo.UndoAction;
 import org.jboss.aesh.undo.UndoManager;
 import org.jboss.aesh.util.ANSI;
+import org.jboss.aesh.util.Helper;
 import org.jboss.aesh.util.LoggerUtil;
 
 import java.io.PrintStream;
@@ -437,17 +438,17 @@ public class AeshConsoleBuffer implements ConsoleBuffer {
      */
     @Override
     public boolean paste(int index, boolean before) {
-        StringBuilder pasteBuffer = pasteManager.get(index);
+        String pasteBuffer = Helper.fromCodePoints(pasteManager.get(index));
         if(pasteBuffer == null)
             return false;
 
         addActionToUndoStack();
         if(before || buffer.getCursor() >= buffer.getLine().length()) {
-            insertBufferLine(pasteBuffer.toString(), buffer.getCursor());
+            insertBufferLine(pasteBuffer, buffer.getCursor());
             drawLine();
         }
         else {
-            insertBufferLine(pasteBuffer.toString(), buffer.getCursor() + 1);
+            insertBufferLine(pasteBuffer, buffer.getCursor() + 1);
             drawLine();
             //move cursor one char
             moveCursor(1);
@@ -465,7 +466,7 @@ public class AeshConsoleBuffer implements ConsoleBuffer {
     }
 
     private void addToPaste(String buffer) {
-        pasteManager.addText(new StringBuilder(buffer));
+        pasteManager.addText(Parser.toCodePoints(buffer));
     }
 
     /**

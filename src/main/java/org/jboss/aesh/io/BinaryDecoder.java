@@ -28,6 +28,7 @@ import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
+import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -114,7 +115,8 @@ public class BinaryDecoder {
           } else {
             throw new UnsupportedOperationException("Handle me gracefully");
           }
-        } else {
+        }
+        else {
           iBuf.put((int) c);
         }
       }
@@ -130,7 +132,8 @@ public class BinaryDecoder {
         if (bBuf.hasRemaining()) {
           // We need more input
           //Helper.noop();
-          LOGGER.info("buffer need more input");
+          LOGGER.info("buffer need more input, got: "+ Arrays.toString(bBuf.array())+
+                  "\n result: "+result);
         }
         else {
           // We are done

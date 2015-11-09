@@ -63,12 +63,12 @@ public class TestTerminalConnection {
         outputStream.write(("testing....\n").getBytes());
         outputStream.flush();
 
-        readline.schedulePendingEvent();
+        //readline.schedulePendingEvent();
 
         System.out.println("before sleep");
         Thread.sleep(1000);
         System.out.println("after sleep");
-        System.out.println("buffer: \n:" + byteArrayOutputStream.toString()+"\n");
+        System.out.println("buffer: " + byteArrayOutputStream.toString());
         System.out.println("after buffer");
 
     }

@@ -387,12 +387,7 @@ public class Console {
      */
     public CompletionRegistration addCompletion(final Completion completion) {
         completionHandler.addCompletion(completion);
-        return new CompletionRegistration() {
-            @Override
-            public void removeCompletion() {
-                completionHandler.removeCompletion(completion);
-            }
-        };
+        return () -> completionHandler.removeCompletion(completion);
     }
 
     /**

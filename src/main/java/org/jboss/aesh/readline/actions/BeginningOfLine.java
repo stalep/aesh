@@ -19,8 +19,9 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -32,7 +33,10 @@ public class BeginningOfLine implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getLine().length());
+    public void apply(Readline.Interaction interaction) {
+        LineBuffer buf = interaction.buffer().copy();
+        buf.moveCursor(-interaction.buffer().size());
+        interaction.refresh(buf);
+        interaction.resume();
     }
 }

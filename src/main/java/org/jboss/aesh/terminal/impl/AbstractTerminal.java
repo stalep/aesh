@@ -59,7 +59,6 @@ public abstract class AbstractTerminal implements Terminal {
     }
 
     public SignalHandler handle(Signal signal, SignalHandler handler) {
-        LOGGER.info("got signal: "+signal);
         assert signal != null;
         assert handler != null;
         return handlers.put(signal, handler);
