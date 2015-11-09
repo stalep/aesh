@@ -26,6 +26,7 @@ import org.jboss.aesh.console.PasteManager;
 import org.jboss.aesh.history.History;
 import org.jboss.aesh.history.InMemoryHistory;
 import org.jboss.aesh.parser.Parser;
+import org.jboss.aesh.readline.editing.EditMode;
 import org.jboss.aesh.readline.editing.EditModeBuilder;
 import org.jboss.aesh.readline.editing.Emacs;
 import org.jboss.aesh.terminal.Key;
@@ -59,7 +60,7 @@ public class Readline {
     private BiConsumer<TtyEvent, Integer> prevEventHandler;
     private Size size;
     private Interaction interaction;
-    private Emacs editMode;
+    private EditMode editMode;
     private History history;
     private PasteManager pasteManager;
     private UndoManager undoManager;
@@ -67,18 +68,23 @@ public class Readline {
 
     public Readline() {
         //this.device = TermInfo.defaultInfo().getDevice("xterm"); // For now use xterm
-        editMode = (Emacs) new EditModeBuilder().create();
+        editMode = new EditModeBuilder().create();
         this.decoder = new EventQueue(editMode);
         //addFunction(ACCEPT_LINE);
         history = new InMemoryHistory();
         pasteManager = new PasteManager();
         undoManager = new UndoManager();
 
-        editMode.addFunction(Key.ENTER, ACCEPT_LINE);
+        editMode.addAction(Key.ENTER, ACCEPT_LINE);
+        editMode.addAction(Key.CTRL_J, ACCEPT_LINE);
+        editMode.addAction(Key.CTRL_M, ACCEPT_LINE);
+
+        /*
         editMode.addFunction(Key.CTRL_J, ACCEPT_LINE);
         editMode.addFunction(Key.CTRL_M, ACCEPT_LINE);
         editMode.addFunction(Key.LEFT, BACKWARD_CHAR);
         editMode.addFunction(Key.CTRL_L, CLEAR);
+        */
     }
 
     public Interaction getInteraction() {
@@ -239,7 +245,7 @@ public class Readline {
                 }
             }
 
-            Function action = editMode.parseTest(event);
+            Action action = editMode.parse(event);
             if(action != null) {
                 paused = true;
                 action.apply(this);
@@ -420,7 +426,7 @@ public class Readline {
     }
 
     // Need to access internal state
-    private final Function ACCEPT_LINE = new Function() {
+    public final Action ACCEPT_LINE = new Action() {
 
         @Override
         public String name() {

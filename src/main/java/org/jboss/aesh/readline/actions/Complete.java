@@ -19,7 +19,6 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.Config;
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.ActionEvent;
 import org.jboss.aesh.readline.KeyEvent;
@@ -50,7 +49,7 @@ public class Complete implements ActionEvent {
             else {
                 interaction.completionHandler().setAskDisplayCompletion(false);
                 interaction.getUndoManager().clear();
-                interaction.conn.write(Config.getLineSeparator());
+                //interaction.conn.write(Config.getLineSeparator());
                 interaction.buffer().clear();
                 interaction.resume();
                 /*

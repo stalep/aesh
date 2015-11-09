@@ -22,6 +22,11 @@ package org.jboss.aesh.readline.actions;
 import org.jboss.aesh.console.ConsoleBuffer;
 import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
+import org.jboss.aesh.undo.UndoAction;
+
+import java.util.Arrays;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -44,21 +49,27 @@ public class DeleteChar implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        deleteNoMasking(inputProcessor.getBuffer());
+    public void apply(Readline.Interaction interaction) {
+        deleteNoMasking(interaction);
     }
 
-    private void deleteNoMasking(ConsoleBuffer consoleBuffer) {
-        int cursor = consoleBuffer.getBuffer().getMultiCursor();
-        int lineSize = consoleBuffer.getBuffer().getLine().length();
+    private void deleteNoMasking(Readline.Interaction interaction) {
+        int cursor = interaction.buffer().getCursor();
+        int lineSize = interaction.buffer().size();
         if(cursor < lineSize) {
-            consoleBuffer.addActionToUndoStack();
-            consoleBuffer.getPasteManager().addText(new StringBuilder(
-                    consoleBuffer.getBuffer().getLine().substring(cursor, cursor+1)));
-            consoleBuffer.getBuffer().delete(cursor, cursor+1);
-            consoleBuffer.drawLine();
+            interaction.getUndoManager().addUndo(new UndoAction(
+                    interaction.buffer().getCursor(),
+                    interaction.buffer().toArray()));
+
+            interaction.getPasteManager().addText(Arrays.copyOfRange(
+                    interaction.buffer().toArray(), cursor, 1));
+            LineBuffer buf = interaction.buffer().copy();
+            buf.delete(1);
             if(cursor == lineSize-1 && cursor > 0 && viMode)
-                consoleBuffer.moveCursor(-1);
+                buf.moveCursor(-1);
+
+            interaction.refresh(buf);
+            interaction.resume();
         }
     }
 }

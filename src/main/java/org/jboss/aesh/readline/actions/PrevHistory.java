@@ -19,8 +19,9 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -32,11 +33,11 @@ public class PrevHistory implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        String history = inputProcessor.getHistory().getPreviousFetch();
+    public void apply(Readline.Interaction interaction) {
+        String history = interaction.getHistory().getPreviousFetch();
         if(history != null) {
-            inputProcessor.getBuffer().setBufferLine(history);
-            inputProcessor.getBuffer().drawLine(false, false);
+            interaction.refresh(new LineBuffer().insert(history));
+            interaction.resume();
         }
     }
 }

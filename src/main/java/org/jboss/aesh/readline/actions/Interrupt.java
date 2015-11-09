@@ -19,9 +19,8 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.Config;
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -34,11 +33,15 @@ public class Interrupt implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
+    public void apply(Readline.Interaction interaction) {
+        //TODO: dont think we need this
+        interaction.resume();
+        /*
         if(inputProcessor.getInterruptHook() != null) {
             inputProcessor.getBuffer().out().print(Config.getLineSeparator());
             inputProcessor.getInterruptHook().handleInterrupt(this);
         }
+        */
     }
 
 }

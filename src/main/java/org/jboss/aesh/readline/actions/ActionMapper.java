@@ -19,8 +19,8 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.Readline;
 
 /**
  *
@@ -33,7 +33,7 @@ public class ActionMapper {
         if(function.equals("abort"))
             return new NullAction();
         else if(function.equals("accept-line"))
-            return new Enter();
+            return new NullAction();
         else if(function.equals("backward-char"))
             return new BackwardChar();
         else if(function.equals("backward-delete-char"))
@@ -202,7 +202,8 @@ public class ActionMapper {
         }
 
         @Override
-        public void apply(InputProcessor inputProcessor) {
+        public void apply(Readline.Interaction interaction) {
+            interaction.resume();
         }
     }
 }

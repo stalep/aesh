@@ -93,6 +93,7 @@ public class Vi implements EditMode {
         return this;
     }
 
+    @Override
     public Vi addAction(Key key, Action action) {
         return addAction(key, action, Status.EDIT);
     }

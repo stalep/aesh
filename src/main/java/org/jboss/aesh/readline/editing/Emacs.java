@@ -74,8 +74,9 @@ public class Emacs implements EditMode {
         actions.put(input, ActionMapper.mapToAction(action));
     }
 
-    public void addAction(Key input, Action action) {
+    public Emacs addAction(Key input, Action action) {
         actions.put(input, action);
+        return this;
     }
 
     private Action parseKeyEventActions(KeyEvent event) {

@@ -87,7 +87,7 @@ public class AeshInputProcessor implements InputProcessor {
         org.jboss.aesh.readline.Action action = consoleBuffer.parse(event);
         if(action != null) {
             LOGGER.info("action: " + action.name());
-            action.apply(this);
+            //action.apply(this);
         }
         else {
             //TODO: probably dont need this if check when we have all keys mapped

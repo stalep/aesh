@@ -234,6 +234,14 @@ public class LineBuffer {
         }
     }
 
+    public void upCase() {
+        data[cursor] = Character.toUpperCase(data[cursor]);
+    }
+
+    public void downCase() {
+        data[cursor] = Character.toLowerCase(data[cursor]);
+    }
+
     public int moveCursor(int delta) {
         int prev = cursor;
         setCursor(cursor + delta);

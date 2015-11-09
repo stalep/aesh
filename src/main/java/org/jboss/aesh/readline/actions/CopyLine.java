@@ -20,8 +20,8 @@
 
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -34,7 +34,7 @@ public class CopyLine implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        inputProcessor.getBuffer().getPasteManager().addText(new StringBuilder(inputProcessor.getBuffer().getBuffer().getLine()));
+    public void apply(Readline.Interaction interaction) {
+        interaction.getPasteManager().addText(interaction.buffer().toArray());
     }
 }

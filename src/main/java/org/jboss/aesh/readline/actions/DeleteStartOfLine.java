@@ -19,7 +19,7 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -37,7 +37,7 @@ public class DeleteStartOfLine extends ChangeAction {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        apply(0, inputProcessor);
+    public void apply(Readline.Interaction interaction) {
+        apply(0, interaction);
     }
 }

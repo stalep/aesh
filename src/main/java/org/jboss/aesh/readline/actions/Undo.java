@@ -19,8 +19,9 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.undo.UndoAction;
 
 /**
@@ -34,13 +35,17 @@ public class Undo implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        UndoAction ua = inputProcessor.getBuffer().getUndoManager().getNext();
+    public void apply(Readline.Interaction interaction) {
+        UndoAction ua = interaction.getUndoManager().getNext();
         if(ua != null) {
+            LineBuffer buf = new LineBuffer().insert(ua.getBuffer());
+            buf.moveCursor(ua.getCursorPosition()-buf.getCursor());
+            /*
             inputProcessor.getBuffer().setBufferLine(ua.getBuffer());
             inputProcessor.getBuffer().drawLine();
             inputProcessor.getBuffer().moveCursor(ua.getCursorPosition() -
                     inputProcessor.getBuffer().getBuffer().getMultiCursor());
+                    */
         }
     }
 }

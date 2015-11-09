@@ -113,7 +113,7 @@ public class AeshCompletionHandler implements CompletionHandler {
     @Override
     public void complete(Readline.Interaction interaction) {
         LineBuffer buffer = interaction.buffer();
-        PrintStream out = inputProcessor.getBuffer().out();
+        //PrintStream out = inputProcessor.getBuffer().out();
         if(!enabled)
             return;
 
@@ -123,10 +123,12 @@ public class AeshCompletionHandler implements CompletionHandler {
         List<CompleteOperation> possibleCompletions = new ArrayList<>();
         int pipeLinePos = 0;
         boolean redirect = false;
-        if(ControlOperatorParser.doStringContainPipelineOrEnd(buffer.getMultiLine())) {
-            pipeLinePos =  ControlOperatorParser.findLastPipelineAndEndPositionBeforeCursor(buffer.getMultiLine(), buffer.getMultiCursor());
+        if(ControlOperatorParser.doStringContainPipelineOrEnd(interaction.buffer().toString())) {
+            pipeLinePos =  ControlOperatorParser.findLastPipelineAndEndPositionBeforeCursor(
+                    interaction.buffer().toString(), interaction.buffer().getCursor());
         }
-        if(ControlOperatorParser.findLastRedirectionPositionBeforeCursor(buffer.getMultiLine(), buffer.getMultiCursor()) > pipeLinePos) {
+        if(ControlOperatorParser.findLastRedirectionPositionBeforeCursor(
+                interaction.buffer().toString(), interaction.buffer().getCursor()) > pipeLinePos) {
             pipeLinePos = 0;
             redirect = true;
         }
@@ -137,10 +139,11 @@ public class AeshCompletionHandler implements CompletionHandler {
             }
             CompleteOperation co;
             if(pipeLinePos > 0) {
-                co = findAliases(buffer.getMultiLine().substring(pipeLinePos, buffer.getMultiCursor()), buffer.getMultiCursor() - pipeLinePos);
+                co = findAliases(interaction.buffer().toString().substring(pipeLinePos,
+                        interaction.buffer().getCursor()), interaction.buffer().getCursor() - pipeLinePos);
             }
             else {
-                co = findAliases(buffer.getMultiLine(), buffer.getMultiCursor());
+                co = findAliases(interaction.buffer().toString(), interaction.buffer().getCursor());
             }
 
             completionList.get(i).complete(co);
@@ -161,9 +164,8 @@ public class AeshCompletionHandler implements CompletionHandler {
             //some formatted completions might not be valid and shouldnt be displayed
             displayCompletion(
                     possibleCompletions.get(0).getFormattedCompletionCandidatesTerminalString().get(0),
-                    buffer, out,
                     possibleCompletions.get(0).hasAppendSeparator(),
-                    possibleCompletions.get(0).getSeparator(), inputProcessor);
+                    possibleCompletions.get(0).getSeparator(), interaction);
         }
         // more than one hit...
         else {
@@ -176,11 +178,10 @@ public class AeshCompletionHandler implements CompletionHandler {
             if(startsWith.length() > 0 ) {
                 if(startsWith.contains(" ") && !possibleCompletions.get(0).doIgnoreNonEscapedSpace())
                     displayCompletion(new TerminalString(Parser.switchSpacesToEscapedSpacesInWord(startsWith), true),
-                            buffer, out,
-                            false, possibleCompletions.get(0).getSeparator(), inputProcessor);
+                            false, possibleCompletions.get(0).getSeparator(), interaction);
                 else
-                    displayCompletion(new TerminalString(startsWith, true), buffer, out,
-                            false, possibleCompletions.get(0).getSeparator(), inputProcessor);
+                    displayCompletion(new TerminalString(startsWith, true),
+                            false, possibleCompletions.get(0).getSeparator(), interaction);
             }
                 // display all
                 // check size
@@ -192,18 +193,18 @@ public class AeshCompletionHandler implements CompletionHandler {
                 if(completions.size() > 100) {
                     //if(displayCompletion) {
                      if(askDisplayCompletion) {
-                        displayCompletions(completions, buffer, out, inputProcessor);
+                        displayCompletions(completions, interaction);
                         //displayCompletion = false;
                          askDisplayCompletion = false;
                     }
                     else {
                         askDisplayCompletion = true;
-                        out.print(Config.getLineSeparator() + "Display all " + completions.size() + " possibilities? (y or n)");
+                        //out.print(Config.getLineSeparator() + "Display all " + completions.size() + " possibilities? (y or n)");
                     }
                 }
                 // display all
                 else {
-                    displayCompletions(completions, buffer, out, inputProcessor);
+                    displayCompletions(completions, interaction);
                 }
             }
         }
@@ -216,10 +217,11 @@ public class AeshCompletionHandler implements CompletionHandler {
      * @param completion partial completion
      * @param appendSpace if its an actual complete
      */
-    private void displayCompletion(TerminalString completion, Buffer buffer, PrintStream out,
-                                   boolean appendSpace, char separator, InputProcessor inputProcessor) {
-        if(completion.getCharacters().startsWith(buffer.getMultiLine())) {
-            ActionMapper.mapToAction("backward-kill-word").apply(inputProcessor);
+    private void displayCompletion(TerminalString completion,
+                                   boolean appendSpace, char separator, Readline.Interaction interaction) {
+        /*
+        if(completion.getCharacters().startsWith(interaction.buffer().toString())) {
+            ActionMapper.mapToAction("backward-kill-word").apply(interaction);
             buffer.write(completion.getCharacters());
             out.print(completion);
 
@@ -235,6 +237,7 @@ public class AeshCompletionHandler implements CompletionHandler {
         }
 
         inputProcessor.getBuffer().drawLine();
+        */
     }
 
     /**
@@ -242,21 +245,24 @@ public class AeshCompletionHandler implements CompletionHandler {
      *
      * @param completions all completion items
      */
-    private void displayCompletions(List<TerminalString> completions, Buffer buffer,
-                                    PrintStream out, InputProcessor inputProcessor) {
+    private void displayCompletions(List<TerminalString> completions,
+                                    Readline.Interaction interaction) {
         Collections.sort(completions);
+        /*
         //printNewline reset cursor pos, so we need to store it
         int oldCursorPos = buffer.getCursor();
         out.print(Config.getLineSeparator());
         buffer.setCursor(oldCursorPos);
         out.print(Parser.formatDisplayListTerminalString(completions,
                 shell.getSize().getHeight(), shell.getSize().getWidth()));
+
         inputProcessor.getBuffer().displayPrompt();
         out.print(buffer.getLine());
         //if we do a complete and the cursor is not at the end of the
         //buffer we need to move it to the correct place
         out.flush();
         inputProcessor.getBuffer().syncCursor();
+        */
     }
 
     private CompleteOperation findAliases(String buffer, int cursor) {

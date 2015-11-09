@@ -19,7 +19,8 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
+import org.jboss.aesh.readline.LineBuffer;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.editing.EditMode;
 
 /**
@@ -37,16 +38,16 @@ public class Yank extends ChangeAction {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
-        StringBuilder pasteBuffer = inputProcessor.getBuffer().getPasteManager().get(0);
+    public void apply(Readline.Interaction interaction) {
+        int[] pasteBuffer = interaction.getPasteManager().get(0);
         if(pasteBuffer != null) {
+            addActionToUndoStack(interaction);
+            if(interaction.buffer().size() >= interaction.buffer().getCursor()) {
+                LineBuffer buf = interaction.buffer().copy();
+                buf.insert(pasteBuffer);
 
-            addActionToUndoStack(inputProcessor);
-            if(inputProcessor.getBuffer().getBuffer().getMultiCursor() <=
-                    inputProcessor.getBuffer().getBuffer().getLine().length()) {
-                inputProcessor.getBuffer().insertBufferLine(pasteBuffer.toString(),
-                        inputProcessor.getBuffer().getBuffer().getMultiCursor());
-                inputProcessor.getBuffer().drawLine();
+                interaction.refresh(buf);
+                interaction.resume();
             }
         }
     }

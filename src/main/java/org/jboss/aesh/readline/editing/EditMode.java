@@ -46,6 +46,8 @@ public interface EditMode {
 
     String getVariableValue(Variable variable);
 
+    EditMode addAction(Key key, Action action);
+
     void addAction(int[] input, String action);
 
     default KeyEvent createKeyEvent(int[] input) {

@@ -19,11 +19,8 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.Config;
-import org.jboss.aesh.console.ConsoleBuffer;
-import org.jboss.aesh.console.InputProcessor;
-import org.jboss.aesh.parser.Parser;
 import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.Readline;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -38,7 +35,8 @@ public class Enter implements Action {
     }
 
     @Override
-    public void apply(InputProcessor inputProcessor) {
+    public void apply(Readline.Interaction interaction) {
+        /*
         ConsoleBuffer consoleBuffer = inputProcessor.getBuffer();
         consoleBuffer.getUndoManager().clear();
         boolean isCurrentLineEnding = true;
@@ -82,5 +80,6 @@ public class Enter implements Action {
         else
             consoleBuffer.displayPrompt();
 
+*/
     }
 }
