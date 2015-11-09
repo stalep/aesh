@@ -284,7 +284,7 @@ public class ExecPty implements Pty {
     }
 
     private static String exec(final String... cmd) throws IOException {
-        assert cmd != null;
+        assert cmd != null || cmd[0].length() > 0;
         try {
             LOGGER.log(Level.INFO, "Running: ", cmd);
             Process p = new ProcessBuilder(cmd).start();

@@ -37,7 +37,7 @@ public class PrevHistory implements Action {
         String history = interaction.getHistory().getPreviousFetch();
         if(history != null) {
             interaction.refresh(new LineBuffer().insert(history));
-            interaction.resume();
         }
+        interaction.resume();
     }
 }

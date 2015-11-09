@@ -65,7 +65,7 @@ public class DeletePrevChar implements Action {
 
             LineBuffer buf = interaction.buffer().copy();
             buf.delete(-1);
-            buf.moveCursor(-1);
+            //buf.moveCursor(-1);
             interaction.refresh(buf);
             interaction.resume();
         }

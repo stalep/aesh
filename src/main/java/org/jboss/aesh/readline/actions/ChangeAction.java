@@ -65,17 +65,17 @@ abstract class ChangeAction extends MovementAction {
             if(cursor < oldCursor) {
                 //add to pastemanager
                 interaction.getPasteManager().addText(
-                        Arrays.copyOfRange(interaction.buffer().toArray(), cursor, (oldCursor - cursor)));
+                        Arrays.copyOfRange(interaction.buffer().toArray(), cursor, oldCursor));
                 //delete buffer
                 LOGGER.info("buffer before delete: " + interaction.buffer().toString());
                 buf.delete(cursor - oldCursor);
                 LOGGER.info("buffer after delete: "+interaction.buffer().toString());
-                buf.moveCursor(cursor - oldCursor);
+                //buf.moveCursor(cursor - oldCursor);
             }
             else {
                 //add to pastemanager
                 interaction.getPasteManager().addText(
-                        Arrays.copyOfRange(buf.toArray(), oldCursor, cursor - oldCursor));
+                        Arrays.copyOfRange(buf.toArray(), oldCursor, cursor));
                 //delete buffer
                 buf.delete(oldCursor - cursor);
             }
@@ -86,21 +86,19 @@ abstract class ChangeAction extends MovementAction {
                 buf.moveCursor(-1);
 
             interaction.refresh(buf);
-            interaction.resume();
         }
         else if(status == EditMode.Status.MOVE) {
             LineBuffer buf = interaction.buffer().copy();
             buf.moveCursor(cursor-oldCursor);
             interaction.refresh(buf);
-            interaction.resume();
         }
         else if(status == EditMode.Status.YANK) {
             if(cursor < oldCursor)
                 interaction.getPasteManager().addText(
-                        Arrays.copyOfRange(interaction.buffer().toArray(), cursor, (oldCursor-cursor)));
+                        Arrays.copyOfRange(interaction.buffer().toArray(), cursor, oldCursor));
             else if(cursor > oldCursor)
                 interaction.getPasteManager().addText(
-                        Arrays.copyOfRange(interaction.buffer().toArray(), oldCursor, cursor-oldCursor));
+                        Arrays.copyOfRange(interaction.buffer().toArray(), oldCursor, cursor));
         }
 
         else if(status == EditMode.Status.UP_CASE) {
@@ -121,7 +119,6 @@ abstract class ChangeAction extends MovementAction {
             }
             buf.moveCursor(cursor - oldCursor);
             interaction.refresh(buf);
-            interaction.resume();
         }
         else if(status == EditMode.Status.DOWN_CASE) {
             LineBuffer buf = interaction.buffer().copy();
@@ -139,7 +136,6 @@ abstract class ChangeAction extends MovementAction {
             }
             buf.moveCursor(cursor - oldCursor);
             interaction.refresh(buf);
-            interaction.resume();
         }
         else if(status == EditMode.Status.CAPITALIZE) {
             LineBuffer buf = interaction.buffer().copy();
@@ -153,9 +149,9 @@ abstract class ChangeAction extends MovementAction {
 
                 buf.moveCursor(cursor - oldCursor);
                 interaction.refresh(buf);
-                interaction.resume();
             }
         }
+        interaction.resume();
     }
 
     protected final void addActionToUndoStack(Readline.Interaction interaction) {

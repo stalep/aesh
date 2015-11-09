@@ -72,7 +72,7 @@ abstract class ForwardWord extends ChangeAction {
             while (cursor < interaction.buffer().size() &&
                     (isDelimiter(interaction.buffer().getAt(cursor))))
                 cursor++;
-            while (cursor < interaction.buffer().size()&
+            while (cursor < interaction.buffer().size() &&
                     !isDelimiter(interaction.buffer().getAt(cursor)))
                 cursor++;
         }

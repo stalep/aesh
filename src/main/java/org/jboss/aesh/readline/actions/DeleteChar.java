@@ -19,8 +19,6 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.ConsoleBuffer;
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.LineBuffer;
 import org.jboss.aesh.readline.Readline;
@@ -62,14 +60,14 @@ public class DeleteChar implements Action {
                     interaction.buffer().toArray()));
 
             interaction.getPasteManager().addText(Arrays.copyOfRange(
-                    interaction.buffer().toArray(), cursor, 1));
+                    interaction.buffer().toArray(), cursor, cursor+1));
             LineBuffer buf = interaction.buffer().copy();
             buf.delete(1);
             if(cursor == lineSize-1 && cursor > 0 && viMode)
                 buf.moveCursor(-1);
 
             interaction.refresh(buf);
-            interaction.resume();
         }
+        interaction.resume();
     }
 }
