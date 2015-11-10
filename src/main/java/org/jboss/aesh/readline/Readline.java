@@ -19,7 +19,6 @@
  */
 package org.jboss.aesh.readline;
 
-import org.jboss.aesh.complete.Completion;
 import org.jboss.aesh.console.Buffer;
 import org.jboss.aesh.console.CompletionHandler;
 import org.jboss.aesh.console.PasteManager;
@@ -28,7 +27,6 @@ import org.jboss.aesh.history.InMemoryHistory;
 import org.jboss.aesh.parser.Parser;
 import org.jboss.aesh.readline.editing.EditMode;
 import org.jboss.aesh.readline.editing.EditModeBuilder;
-import org.jboss.aesh.readline.editing.Emacs;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.terminal.api.Size;
 import org.jboss.aesh.tty.TtyConnection;
@@ -45,7 +43,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
- * Make this class thread safe as SSH will access this class with different threds [sic].
+ * Make this class thread safe as SSH will access this class with different threads [sic].
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -68,9 +66,12 @@ public class Readline {
 
     public Readline() {
         //this.device = TermInfo.defaultInfo().getDevice("xterm"); // For now use xterm
-        editMode = new EditModeBuilder().create();
+        this(EditModeBuilder.builder().create());
+   }
+
+    public Readline(EditMode editMode) {
         this.decoder = new EventQueue(editMode);
-        //addFunction(ACCEPT_LINE);
+        this.editMode = editMode;
         history = new InMemoryHistory();
         pasteManager = new PasteManager();
         undoManager = new UndoManager();
@@ -78,13 +79,6 @@ public class Readline {
         editMode.addAction(Key.ENTER, ACCEPT_LINE);
         editMode.addAction(Key.CTRL_J, ACCEPT_LINE);
         editMode.addAction(Key.CTRL_M, ACCEPT_LINE);
-
-        /*
-        editMode.addFunction(Key.CTRL_J, ACCEPT_LINE);
-        editMode.addFunction(Key.CTRL_M, ACCEPT_LINE);
-        editMode.addFunction(Key.LEFT, BACKWARD_CHAR);
-        editMode.addFunction(Key.CTRL_L, CLEAR);
-        */
     }
 
     public Interaction getInteraction() {
@@ -118,10 +112,25 @@ public class Readline {
     }
 
     private void deliver() {
+    while (true) {
+      Interaction handler;
+      KeyEvent event;
+      synchronized (this) {
+        if (decoder.hasNext() && interaction != null && !interaction.paused) {
+          event = decoder.next();
+          handler = interaction;
+        } else {
+          return;
+        }
+      }
+      handler.handle(event);
+    }
+        /*
         while (decoder.hasNext() && interaction != null && !interaction.paused) {
             KeyEvent next = decoder.next();
             interaction.handle(next);
         }
+        */
     }
 
     /**
@@ -184,6 +193,7 @@ public class Readline {
         private final LineBuffer buffer = new LineBuffer();
         private String currentPrompt;
         private boolean paused;
+        private boolean promptEnabled = true;
 
         private Interaction(
                 TtyConnection conn,
@@ -210,6 +220,22 @@ public class Readline {
 
         public UndoManager getUndoManager() {
             return undoManager;
+        }
+
+        public void queueEvent(int[] data) {
+            decoder.append(data);
+        }
+
+        public void disablePrompt() {
+            promptEnabled = false;
+        }
+
+        public void enablePrompt() {
+            promptEnabled = true;
+        }
+
+        public TtyConnection connection() {
+            return conn;
         }
 
         /**
@@ -248,6 +274,7 @@ public class Readline {
             Action action = editMode.parse(event);
             if(action != null) {
                 paused = true;
+                LOGGER.info("applying action: "+action);
                 action.apply(this);
             }
             else {
@@ -295,9 +322,13 @@ public class Readline {
 
             // Erase screen
             LineBuffer abc = new LineBuffer();
-            abc.insert(currentPrompt);
+            if(promptEnabled)
+                abc.insert(currentPrompt);
             abc.insert(buffer.toArray());
-            abc.setCursor(currentPrompt.length() + buffer.getCursor());
+            if(promptEnabled)
+                abc.setCursor(currentPrompt.length() + buffer.getCursor());
+            else
+                abc.setCursor(buffer.getCursor());
 
             // Recompute new cursor
             Point pos = abc.getCursorPosition(newWidth);
@@ -330,7 +361,8 @@ public class Readline {
             out.accept(new int[]{'\033','[','1','K'});
 
             // Now redraw
-            out.accept(Parser.toCodePoints(currentPrompt));
+            if(promptEnabled)
+                out.accept(Parser.toCodePoints(currentPrompt));
             refresh(new LineBuffer(), newWidth);
         }
 
@@ -363,9 +395,13 @@ public class Readline {
          */
         public void redraw() {
             LineBuffer toto = new LineBuffer();
-            toto.insert(Parser.toCodePoints(currentPrompt));
+            if(promptEnabled)
+                toto.insert(Parser.toCodePoints(currentPrompt));
             toto.insert(buffer.toArray());
-            toto.setCursor(currentPrompt.length() + buffer.getCursor());
+            if(promptEnabled)
+                toto.setCursor(currentPrompt.length() + buffer.getCursor());
+            else
+                toto.setCursor(buffer.getCursor());
             LineBuffer abc = new LineBuffer();
             abc.update(toto, conn.stdoutHandler(), size.getWidth());
         }
@@ -382,14 +418,25 @@ public class Readline {
 
         private void refresh(LineBuffer update, int width) {
             LOGGER.info("refreshing buffer: "+update+", width: "+width);
+            LOGGER.info("is prompt enabled: "+ promptEnabled+", buffer is: "+buffer().toString());
             LineBuffer copy3 = new LineBuffer();
-            copy3.insert(Parser.toCodePoints(currentPrompt));
+            if(promptEnabled)
+                copy3.insert(Parser.toCodePoints(currentPrompt));
             copy3.insert(buffer().toArray());
-            copy3.setCursor(currentPrompt.length() + buffer().getCursor());
+            if(promptEnabled)
+                copy3.setCursor(currentPrompt.length() + buffer().getCursor());
+            else
+                copy3.setCursor(buffer().getCursor());
+
             LineBuffer copy2 = new LineBuffer();
-            copy2.insert(Parser.toCodePoints(currentPrompt));
+            if(promptEnabled)
+                copy2.insert(Parser.toCodePoints(currentPrompt));
             copy2.insert(update.toArray());
-            copy2.setCursor(currentPrompt.length() + update.getCursor());
+            if(promptEnabled)
+                copy2.setCursor(currentPrompt.length() + update.getCursor());
+            else
+                copy2.setCursor(update.getCursor());
+
             copy3.update(copy2, conn.stdoutHandler(), width);
             buffer.clear();
             buffer.insert(update.toArray());
