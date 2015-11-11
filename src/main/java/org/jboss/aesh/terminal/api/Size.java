@@ -26,9 +26,9 @@ public class Size {
     private final int height;
     private final int width;
 
-    public Size(int height, int width) {
-        this.height = height;
+    public Size(int width, int height) {
         this.width = width;
+        this.height = height;
     }
 
     public int getWidth() {

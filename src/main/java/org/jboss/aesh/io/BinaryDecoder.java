@@ -20,6 +20,7 @@
 
 package org.jboss.aesh.io;
 
+import org.jboss.aesh.util.Helper;
 import org.jboss.aesh.util.LoggerUtil;
 
 import java.nio.ByteBuffer;
@@ -37,114 +38,120 @@ import java.util.logging.Logger;
  */
 public class BinaryDecoder {
 
-  private static final ByteBuffer EMPTY = ByteBuffer.allocate(0);
+    private static final ByteBuffer EMPTY = ByteBuffer.allocate(0);
 
-  private static final Logger LOGGER = LoggerUtil.getLogger(BinaryDecoder.class.getName());
+    private static final Logger LOGGER = LoggerUtil.getLogger(BinaryDecoder.class.getName());
 
-  private CharsetDecoder decoder;
-  private ByteBuffer bBuf;
-  private final CharBuffer cBuf;
-  private final Consumer<int[]> onChar;
+    private CharsetDecoder decoder;
+    private ByteBuffer bBuf;
+    private final CharBuffer cBuf;
+    private final Consumer<int[]> onChar;
 
-  public BinaryDecoder(Charset charset, Consumer<int[]> onChar) {
-    this(2, charset, onChar);
-  }
-
-  public BinaryDecoder(int initialSize, Charset charset, Consumer<int[]> onChar) {
-    if (initialSize < 2) {
-      throw new IllegalArgumentException("Initial size must be at least 2");
+    public BinaryDecoder(Charset charset, Consumer<int[]> onChar) {
+        this(2, charset, onChar);
     }
-    decoder = charset.newDecoder();
-    bBuf = EMPTY;
-    cBuf = CharBuffer.allocate(initialSize); // We need at least 2
-    this.onChar = onChar;
-  }
 
-  /**
-   * Set a new charset on the decoder.
-   *
-   * @param charset the new charset
-   */
-  public void setCharset(Charset charset) {
-    decoder = charset.newDecoder();
-  }
-
-  public void write(byte[] data) {
-    write(data, 0, data.length);
-  }
-
-  public void write(byte[] data, int start, int len) {
-
-    // Fill the byte buffer
-    int remaining = bBuf.remaining();
-    if (len > remaining) {
-      // Allocate a new buffer
-      ByteBuffer tmp = bBuf;
-      int length = tmp.position() + len;
-      bBuf = ByteBuffer.allocate(length);
-      tmp.flip();
-      bBuf.put(tmp);
+    public BinaryDecoder(int initialSize, Charset charset, Consumer<int[]> onChar) {
+        if (initialSize < 2) {
+            throw new IllegalArgumentException("Initial size must be at least 2");
+        }
+        decoder = charset.newDecoder();
+        bBuf = EMPTY;
+        cBuf = CharBuffer.allocate(initialSize); // We need at least 2
+        this.onChar = onChar;
     }
-    bBuf.put(data, start, len);
-    bBuf.flip();
 
-    // Drain the byte buffer
-    while (true) {
-      IntBuffer iBuf = IntBuffer.allocate(bBuf.remaining());
-      CoderResult result = decoder.decode(bBuf, cBuf, false);
-      cBuf.flip();
-      while (cBuf.hasRemaining()) {
-        char c = cBuf.get();
-        if (Character.isSurrogate(c)) {
-          if (Character.isHighSurrogate(c)) {
-            if (cBuf.hasRemaining()) {
-              char low = cBuf.get();
-              if (Character.isLowSurrogate(low)) {
-                int codePoint = Character.toCodePoint(c, low);
-                if (Character.isValidCodePoint(codePoint)) {
-                  iBuf.put(codePoint);
-                } else {
-                  throw new UnsupportedOperationException("Handle me gracefully");
+    /**
+     * Set a new charset on the decoder.
+     *
+     * @param charset the new charset
+     */
+    public void setCharset(Charset charset) {
+        decoder = charset.newDecoder();
+    }
+
+    public void write(byte[] data) {
+        write(data, 0, data.length);
+    }
+
+    public void write(byte[] data, int start, int len) {
+        LOGGER.info("GOT: "+Arrays.toString(Arrays.copyOf(data, len)));
+
+        // Fill the byte buffer
+        int remaining = bBuf.remaining();
+        if (len > remaining) {
+            // Allocate a new buffer
+            ByteBuffer tmp = bBuf;
+            int length = tmp.position() + len;
+            bBuf = ByteBuffer.allocate(length);
+            tmp.flip();
+            bBuf.put(tmp);
+        }
+        bBuf.put(data, start, len);
+        bBuf.flip();
+
+        // Drain the byte buffer
+        while (true) {
+            IntBuffer iBuf = IntBuffer.allocate(bBuf.remaining());
+            CoderResult result = decoder.decode(bBuf, cBuf, false);
+            cBuf.flip();
+            while (cBuf.hasRemaining()) {
+                char c = cBuf.get();
+                if (Character.isSurrogate(c)) {
+                    if (Character.isHighSurrogate(c)) {
+                        if (cBuf.hasRemaining()) {
+                            char low = cBuf.get();
+                            if (Character.isLowSurrogate(low)) {
+                                int codePoint = Character.toCodePoint(c, low);
+                                if (Character.isValidCodePoint(codePoint)) {
+                                    iBuf.put(codePoint);
+                                } else {
+                                    throw new UnsupportedOperationException("Handle me gracefully");
+                                }
+                            } else {
+                                throw new UnsupportedOperationException("Handle me gracefully");
+                            }
+                        } else {
+                            throw new UnsupportedOperationException("Handle me gracefully");
+                        }
+                    } else {
+                        throw new UnsupportedOperationException("Handle me gracefully");
+                    }
                 }
-              } else {
-                throw new UnsupportedOperationException("Handle me gracefully");
-              }
-            } else {
-              throw new UnsupportedOperationException("Handle me gracefully");
+                else {
+                    if(iBuf.hasRemaining()) {
+                        LOGGER.info("adding " + c + ", to iBuf." + iBuf.position() + ", size: " + iBuf.toString());
+                        iBuf.put((int) c);
+                    }
+                    else
+                        LOGGER.warning("CANT APPEND TO IBUF: "+c);
+                }
             }
-          } else {
-            throw new UnsupportedOperationException("Handle me gracefully");
-          }
+            iBuf.flip();
+            int[] codePoints = new int[iBuf.limit()];
+            iBuf.get(codePoints);
+            onChar.accept(codePoints);
+            cBuf.compact();
+            if (result.isOverflow()) {
+                // We still have work to do
+            }
+            else if (result.isUnderflow()) {
+                if (bBuf.hasRemaining()) {
+                    // We need more input
+                    Helper.noop();
+                    LOGGER.info("buffer need more input, got: "+ Arrays.toString(bBuf.array())+
+                            "\n result: "+result);
+                }
+                else {
+                    // We are done
+                    Helper.noop();
+                }
+                break;
+            }
+            else {
+                throw new UnsupportedOperationException("Handle me gracefully");
+            }
         }
-        else {
-          iBuf.put((int) c);
-        }
-      }
-      iBuf.flip();
-      int[] codePoints = new int[iBuf.limit()];
-      iBuf.get(codePoints);
-      onChar.accept(codePoints);
-      cBuf.compact();
-      if (result.isOverflow()) {
-        // We still have work to do
-      }
-      else if (result.isUnderflow()) {
-        if (bBuf.hasRemaining()) {
-          // We need more input
-          //Helper.noop();
-          LOGGER.info("buffer need more input, got: "+ Arrays.toString(bBuf.array())+
-                  "\n result: "+result);
-        }
-        else {
-          // We are done
-          //Helper.noop();
-        }
-        break;
-      }
-      else {
-        throw new UnsupportedOperationException("Handle me gracefully");
-      }
+        bBuf.compact();
     }
-    bBuf.compact();
-  }
 }

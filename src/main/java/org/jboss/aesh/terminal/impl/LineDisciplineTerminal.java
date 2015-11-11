@@ -113,7 +113,7 @@ public class LineDisciplineTerminal extends AbstractTerminal {
         this.masterOutput = masterOutput;
         this.encoding = encoding;
         this.attributes = new Attributes();
-        this.size = new Size(50, 160);
+        this.size = new Size(160, 50);
         parseInfoCmp();
     }
 
@@ -146,11 +146,11 @@ public class LineDisciplineTerminal extends AbstractTerminal {
     }
 
     public Size getSize() {
-        return new Size(size.getHeight(), size.getWidth());
+        return size;
     }
 
     public void setSize(Size sz) {
-        size = new Size(sz.getHeight(), sz.getWidth());
+        size = new Size(sz.getWidth(), sz.getHeight());
     }
 
    @Override

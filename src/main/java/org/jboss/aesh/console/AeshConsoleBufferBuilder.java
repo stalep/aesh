@@ -60,7 +60,7 @@ public class AeshConsoleBufferBuilder {
         if(shell == null)
             throw new IllegalArgumentException("Shell must be provided to create ConsoleBuffer");
         if(editMode == null)
-            editMode = new EditModeBuilder().create();
+            editMode = EditModeBuilder.builder().create();
         if(prompt == null)
             prompt = new Prompt("");
 

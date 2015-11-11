@@ -63,7 +63,7 @@ public class InputrcParser {
      *
      */
     protected static EditMode parseInputrc(InputStream inputStream) {
-        return parseInputrc(inputStream, new EditModeBuilder());
+        return parseInputrc(inputStream, EditModeBuilder.builder());
     }
 
     protected static EditMode parseInputrc(InputStream inputStream, EditModeBuilder editMode) {

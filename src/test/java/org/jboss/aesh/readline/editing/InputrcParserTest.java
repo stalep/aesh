@@ -57,7 +57,7 @@ public class InputrcParserTest {
     public void testParseInputrc2() throws IOException {
         if(Config.isOSPOSIXCompatible()) {  //TODO: must fix this for windows
 
-            EditMode editMode = new EditModeBuilder().create();
+            EditMode editMode = EditModeBuilder.builder().create();
             EventQueue eventQueue = new EventQueue();
             eventQueue.append(27, 91, 68);
             assertEquals("backward-char", editMode.parse( eventQueue.next()).name());

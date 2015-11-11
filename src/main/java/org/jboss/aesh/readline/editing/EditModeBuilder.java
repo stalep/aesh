@@ -20,6 +20,8 @@
 
 package org.jboss.aesh.readline.editing;
 
+import org.jboss.aesh.readline.Action;
+import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.readline.Variable;
 import org.jboss.aesh.readline.actions.BackwardChar;
 import org.jboss.aesh.readline.actions.BeginningOfLine;
@@ -64,7 +66,7 @@ public class EditModeBuilder {
 
     private Map<Variable,String> variables;
 
-    public EditModeBuilder(EditMode.Mode mode) {
+    private EditModeBuilder(EditMode.Mode mode) {
         this();
         if(mode == EditMode.Mode.EMACS)
             variables.put(Variable.EDITING_MODE, "emacs");
@@ -72,9 +74,17 @@ public class EditModeBuilder {
             variables.put(Variable.EDITING_MODE, "vi");
     }
 
-    public EditModeBuilder() {
+    private EditModeBuilder() {
         actions = new HashMap<>();
         variables = new EnumMap<>(Variable.class);
+    }
+
+    public static EditModeBuilder builder() {
+        return new EditModeBuilder();
+    }
+
+    public static EditModeBuilder builder(EditMode.Mode mode) {
+        return new EditModeBuilder(mode);
     }
 
     public EditModeBuilder addAction(int[] input, String action) {
@@ -94,6 +104,13 @@ public class EditModeBuilder {
 
     public String getVariableValue(Variable variable) {
         return variables.get(variable);
+    }
+
+    public EditMode createSimple() {
+        Emacs simpleEmacs = new Emacs();
+        simpleEmacs.clearDefaultActions();
+
+        return simpleEmacs;
     }
 
     public EditMode create() {

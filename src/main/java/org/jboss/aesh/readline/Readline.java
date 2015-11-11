@@ -1,9 +1,5 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2014 Red Hat Inc. and/or its affiliates and other contributors
- * as indicated by the @authors tag. All rights reserved.
- * See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2015 Julien Viet
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jboss.aesh.readline;
 
-import org.jboss.aesh.console.Buffer;
+
 import org.jboss.aesh.console.CompletionHandler;
 import org.jboss.aesh.console.PasteManager;
 import org.jboss.aesh.history.History;
 import org.jboss.aesh.history.InMemoryHistory;
-import org.jboss.aesh.parser.Parser;
 import org.jboss.aesh.readline.editing.EditMode;
 import org.jboss.aesh.readline.editing.EditModeBuilder;
 import org.jboss.aesh.terminal.Key;
@@ -32,18 +28,21 @@ import org.jboss.aesh.terminal.api.Size;
 import org.jboss.aesh.tty.TtyConnection;
 import org.jboss.aesh.tty.TtyEvent;
 import org.jboss.aesh.undo.UndoManager;
-import org.jboss.aesh.util.ANSI;
+import org.jboss.aesh.util.Helper;
 import org.jboss.aesh.util.LoggerUtil;
 import org.jboss.aesh.util.Point;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Make this class thread safe as SSH will access this class with different threads [sic].
+ * Make this class thread safe as SSH will access this class with different threds [sic].
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -51,34 +50,32 @@ public class Readline {
 
     private static final Logger LOGGER = LoggerUtil.getLogger(Readline.class.getName());
     //private final Device device;
-    //private final Map<String, Function> functions = new HashMap<>();
+    private final Map<String, Function> functions = new HashMap<>();
     private final EventQueue decoder;
-    private Consumer<int[]> prevReadHandler;
-    private Consumer<Size> prevSizeHandler;
-    private BiConsumer<TtyEvent, Integer> prevEventHandler;
-    private Size size;
     private Interaction interaction;
+    private Size size;
+
     private EditMode editMode;
-    private History history;
-    private PasteManager pasteManager;
     private UndoManager undoManager;
-    private CompletionHandler completionHandler;
+    private PasteManager pasteManager;
+    private History history;
 
     public Readline() {
-        //this.device = TermInfo.defaultInfo().getDevice("xterm"); // For now use xterm
         this(EditModeBuilder.builder().create());
-   }
+    }
 
     public Readline(EditMode editMode) {
-        this.decoder = new EventQueue(editMode);
+        //this.device = TermInfo.defaultInfo().getDevice("xterm"); // For now use xterm
         this.editMode = editMode;
-        history = new InMemoryHistory();
-        pasteManager = new PasteManager();
+        this.history = new InMemoryHistory();
         undoManager = new UndoManager();
+        pasteManager = new PasteManager();
 
-        editMode.addAction(Key.ENTER, ACCEPT_LINE);
-        editMode.addAction(Key.CTRL_J, ACCEPT_LINE);
-        editMode.addAction(Key.CTRL_M, ACCEPT_LINE);
+        addAction(Key.ENTER, ACCEPT_LINE);
+        addAction(Key.CTRL_J, ACCEPT_LINE);
+        addAction(Key.CTRL_M, ACCEPT_LINE);
+
+        this.decoder = new EventQueue(this.editMode);
     }
 
     public Interaction getInteraction() {
@@ -96,12 +93,13 @@ public class Readline {
         return history;
     }
 
-    public PasteManager getPasteManager() {
-        return pasteManager;
-    }
-
-    public UndoManager getUndoManager() {
-        return undoManager;
+    /**
+     * Set the history
+     *
+     * @param history the history
+     */
+    public void setHistory(History history) {
+        this.history = history;
     }
 
     /**
@@ -111,26 +109,25 @@ public class Readline {
         return size;
     }
 
-    private void deliver() {
-    while (true) {
-      Interaction handler;
-      KeyEvent event;
-      synchronized (this) {
-        if (decoder.hasNext() && interaction != null && !interaction.paused) {
-          event = decoder.next();
-          handler = interaction;
-        } else {
-          return;
-        }
-      }
-      handler.handle(event);
+    public Readline addAction(Key key, Action action) {
+        editMode.addAction(key, action);
+        return this;
     }
-        /*
-        while (decoder.hasNext() && interaction != null && !interaction.paused) {
-            KeyEvent next = decoder.next();
-            interaction.handle(next);
+
+    private void deliver() {
+        while (true) {
+            Interaction handler;
+            KeyEvent event;
+            synchronized (this) {
+                if (decoder.hasNext() && interaction != null && !interaction.paused) {
+                    event = decoder.next();
+                    handler = interaction;
+                } else {
+                    return;
+                }
+            }
+            handler.handle(event);
         }
-        */
     }
 
     /**
@@ -148,10 +145,12 @@ public class Readline {
      * @param requestHandler the requestHandler
      */
     public void readline(TtyConnection conn, String prompt, Consumer<String> requestHandler, CompletionHandler completionHandler) {
-        if (interaction != null) {
-            throw new IllegalStateException("Already reading a line");
+        synchronized (this) {
+            if (interaction != null) {
+                throw new IllegalStateException("Already reading a line");
+            }
+            interaction = new Interaction(conn, prompt, requestHandler, completionHandler);
         }
-        interaction = new Interaction(conn, prompt, requestHandler, completionHandler);
         interaction.install();
         conn.write(prompt);
         schedulePendingEvent();
@@ -161,39 +160,48 @@ public class Readline {
      * Schedule delivery of pending events in the event queue.
      */
     public void schedulePendingEvent() {
-        if (interaction == null) {
-            throw new IllegalStateException("No interaction!");
+        TtyConnection conn;
+        synchronized (this) {
+            if (interaction == null) {
+                throw new IllegalStateException("No interaction!");
+            }
+            if (decoder.hasNext()) {
+                conn = interaction.conn;
+            } else {
+                return;
+            }
         }
-        if (decoder.hasNext()) {
-            interaction.conn.execute(Readline.this::deliver);
-        }
+        conn.execute(Readline.this::deliver);
     }
 
-    public Readline queueEvent(int[] codePoints) {
+    public synchronized Readline queueEvent(int[] codePoints) {
         decoder.append(codePoints);
         return this;
     }
 
-    public boolean hasEvent() {
+    public synchronized boolean hasEvent() {
         return decoder.hasNext();
     }
 
-    public KeyEvent nextEvent() {
+    public synchronized KeyEvent nextEvent() {
         return decoder.next();
     }
 
     public class Interaction {
 
         final TtyConnection conn;
+        private Consumer<int[]> prevReadHandler;
+        private Consumer<Size> prevSizeHandler;
+        private BiConsumer<TtyEvent, Integer> prevEventHandler;
         private final String prompt;
         private final Consumer<String> requestHandler;
         private final CompletionHandler completionHandler;
         private final Map<String, Object> data;
         private final LineBuffer line = new LineBuffer();
         private final LineBuffer buffer = new LineBuffer();
+        private int historyIndex = -1;
         private String currentPrompt;
         private boolean paused;
-        private boolean promptEnabled = true;
 
         private Interaction(
                 TtyConnection conn,
@@ -206,36 +214,6 @@ public class Readline {
             this.currentPrompt = prompt;
             this.requestHandler = requestHandler;
             this.completionHandler = completionHandler;
-
-            LOGGER.info("created new instance of interaction");
-        }
-
-        public History getHistory() {
-            return history;
-        }
-
-        public PasteManager getPasteManager() {
-            return pasteManager;
-        }
-
-        public UndoManager getUndoManager() {
-            return undoManager;
-        }
-
-        public void queueEvent(int[] data) {
-            decoder.append(data);
-        }
-
-        public void disablePrompt() {
-            promptEnabled = false;
-        }
-
-        public void enablePrompt() {
-            promptEnabled = true;
-        }
-
-        public TtyConnection connection() {
-            return conn;
         }
 
         /**
@@ -247,7 +225,9 @@ public class Readline {
             conn.setStdinHandler(prevReadHandler);
             conn.setSizeHandler(prevSizeHandler);
             conn.setEventHandler(prevEventHandler);
-            interaction = null;
+            synchronized (Readline.this) {
+                interaction = null;
+            }
             requestHandler.accept(s);
         }
 
@@ -259,76 +239,48 @@ public class Readline {
                     // Specific behavior for Ctrl-D with empty line
                     end(null);
                     return;
-                }
-                else if (event.getCodePointAt(0) == 3) {
-                    LOGGER.info("got ctrl-c");
+                } else if (event.getCodePointAt(0) == 3) {
                     // Specific behavior Ctrl-C
-                    interaction = new Interaction(conn, interaction.prompt, interaction.requestHandler, interaction.completionHandler);
+                    line.clear();
+                    buffer.clear();
+                    data.clear();
+                    historyIndex = -1;
+                    currentPrompt = prompt;
                     conn.stdoutHandler().accept(new int[]{'\n'});
                     conn.write(interaction.prompt);
-                    LOGGER.info("added newline and displayed prompt, returning");
                     return;
                 }
             }
 
             Action action = editMode.parse(event);
-            if(action != null) {
-                paused = true;
-                LOGGER.info("applying action: "+action);
+            if (action != null) {
+                synchronized (this) {
+                    paused = true;
+                }
                 action.apply(this);
             }
             else {
-                //TODO: probably dont need this if check when we have all keys mapped
-                //if(Key.isPrintable(event.buffer().array()))
-                //  conn.stdoutHandler().accept(event.buffer().array());
                 LineBuffer buf = buffer.copy();
                 for (int i = 0;i < event.length();i++) {
                     int codePoint = event.getCodePointAt(i);
                     try {
                         buf.insert(codePoint);
-                    } catch (IllegalArgumentException e) {
+                    }
+                    catch (IllegalArgumentException e) {
                         conn.stdoutHandler().accept(new int[]{'\007'});
                     }
                 }
                 refresh(buf);
             }
-
-      /*
-      if (event instanceof FunctionEvent) {
-        FunctionEvent fname = (FunctionEvent) event;
-        Function function = functions.get(fname.name());
-        if (function != null) {
-          paused = true;
-          function.apply(this);
-        } else {
-          Logging.READLINE.log(Level.WARNING, "Unimplemented function " + fname.name());
-        }
-      } else {
-        LineBuffer buf = buffer.copy();
-        for (int i = 0;i < event.length();i++) {
-          int codePoint = event.getCodePointAt(i);
-          try {
-            buf.insert(codePoint);
-          } catch (IllegalArgumentException e) {
-            conn.stdoutHandler().accept(new int[]{'\007'});
-          }
-        }
-        refresh(buf);
-      }
-      */
         }
 
         void resize(int oldWith, int newWidth) {
 
             // Erase screen
             LineBuffer abc = new LineBuffer();
-            if(promptEnabled)
-                abc.insert(currentPrompt);
+            abc.insert(currentPrompt);
             abc.insert(buffer.toArray());
-            if(promptEnabled)
-                abc.setCursor(currentPrompt.length() + buffer.getCursor());
-            else
-                abc.setCursor(buffer.getCursor());
+            abc.setCursor(currentPrompt.length() + buffer.getCursor());
 
             // Recompute new cursor
             Point pos = abc.getCursorPosition(newWidth);
@@ -361,8 +313,7 @@ public class Readline {
             out.accept(new int[]{'\033','[','1','K'});
 
             // Now redraw
-            if(promptEnabled)
-                out.accept(Parser.toCodePoints(currentPrompt));
+            out.accept(Helper.toCodePoints(currentPrompt));
             refresh(new LineBuffer(), newWidth);
         }
 
@@ -372,6 +323,33 @@ public class Readline {
 
         public Map<String, Object> data() {
             return data;
+        }
+
+        public History getHistory() {
+            return history;
+        }
+
+        public void disablePrompt() {
+        }
+
+        public void enablePrompt() {
+        }
+
+        public TtyConnection connection() {
+            return conn;
+        }
+
+        public UndoManager getUndoManager() {
+            return undoManager;
+        }
+
+        public PasteManager getPasteManager() {
+            return pasteManager;
+        }
+
+        public void queueEvent(int[] event) {
+            decoder.append(event);
+
         }
 
         public LineBuffer line() {
@@ -395,13 +373,9 @@ public class Readline {
          */
         public void redraw() {
             LineBuffer toto = new LineBuffer();
-            if(promptEnabled)
-                toto.insert(Parser.toCodePoints(currentPrompt));
+            toto.insert(Helper.toCodePoints(currentPrompt));
             toto.insert(buffer.toArray());
-            if(promptEnabled)
-                toto.setCursor(currentPrompt.length() + buffer.getCursor());
-            else
-                toto.setCursor(buffer.getCursor());
+            toto.setCursor(currentPrompt.length() + buffer.getCursor());
             LineBuffer abc = new LineBuffer();
             abc.update(toto, conn.stdoutHandler(), size.getWidth());
         }
@@ -417,38 +391,27 @@ public class Readline {
         }
 
         private void refresh(LineBuffer update, int width) {
-            LOGGER.info("refreshing buffer: "+update+", width: "+width);
-            LOGGER.info("is prompt enabled: "+ promptEnabled+", buffer is: "+buffer().toString());
             LineBuffer copy3 = new LineBuffer();
-            if(promptEnabled)
-                copy3.insert(Parser.toCodePoints(currentPrompt));
+            copy3.insert(Helper.toCodePoints(currentPrompt));
             copy3.insert(buffer().toArray());
-            if(promptEnabled)
-                copy3.setCursor(currentPrompt.length() + buffer().getCursor());
-            else
-                copy3.setCursor(buffer().getCursor());
-
+            copy3.setCursor(currentPrompt.length() + buffer().getCursor());
             LineBuffer copy2 = new LineBuffer();
-            if(promptEnabled)
-                copy2.insert(Parser.toCodePoints(currentPrompt));
+            copy2.insert(Helper.toCodePoints(currentPrompt));
             copy2.insert(update.toArray());
-            if(promptEnabled)
-                copy2.setCursor(currentPrompt.length() + update.getCursor());
-            else
-                copy2.setCursor(update.getCursor());
-
+            copy2.setCursor(currentPrompt.length() + update.getCursor());
             copy3.update(copy2, conn.stdoutHandler(), width);
             buffer.clear();
             buffer.insert(update.toArray());
             buffer.setCursor(update.getCursor());
-            LOGGER.info("cursor is set to: "+buffer.getCursor());
         }
 
         public void resume() {
-            if (!paused) {
-                throw new IllegalStateException();
+            synchronized (Readline.this) {
+                if (!paused) {
+                    throw new IllegalStateException();
+                }
+                paused = false;
             }
-            paused = false;
             schedulePendingEvent();
         }
 
@@ -457,7 +420,9 @@ public class Readline {
             prevSizeHandler = conn.getSizeHandler();
             prevEventHandler = conn.getEventHandler();
             conn.setStdinHandler(data -> {
-                decoder.append(data);
+                synchronized (Readline.this) {
+                    decoder.append(data);
+                }
                 deliver();
             });
             size = conn.size();
@@ -473,7 +438,7 @@ public class Readline {
     }
 
     // Need to access internal state
-    public final Action ACCEPT_LINE = new Action() {
+    private final Action ACCEPT_LINE = new Action() {
 
         @Override
         public String name() {
@@ -503,43 +468,13 @@ public class Readline {
                     String raw = interaction.line.toString();
                     if (interaction.line.size() > 0) {
                         history.push(interaction.line.toArray());
+                        //history.add(0, interaction.line.toArray());
                     }
                     interaction.line.clear();
                     interaction.conn.write("\n");
                     interaction.end(raw);
                 }
             }
-        }
-    };
-
-    private final Function BACKWARD_CHAR = new Function() {
-        @Override
-        public String name() {
-            return "backward-char";
-        }
-
-        @Override
-        public void apply(Interaction interaction) {
-            LineBuffer buf = interaction.buffer().copy();
-            buf.moveCursor(-1);
-            interaction.refresh(buf);
-            interaction.resume();
-        }
-    };
-
-    private final Function CLEAR = new Function() {
-        @Override
-        public String name() {
-            return "clear";
-        }
-
-        @Override
-        public void apply(Interaction interaction) {
-            interaction.conn.write(ANSI.CLEAR_SCREEN);
-            //move cursor to correct position
-            interaction.conn.write(new String(Buffer.printAnsi("1;1H")));
-            interaction.redraw();
-            interaction.resume();
         }
     };
 }

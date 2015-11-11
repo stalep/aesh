@@ -74,8 +74,10 @@ public class TerminalConnection implements TtyConnection {
                 if(getEventHandler() != null) {
                     getEventHandler().accept(TtyEvent.INTR, 3);
                 }
-                else
-                    LOGGER.info("no eventhandler is registered");
+                else {
+                    LOGGER.info("no eventhandler is registered, lets stop");
+                    close();
+                }
             });
 
             terminal.handle(Terminal.Signal.WINCH, s -> {
@@ -85,7 +87,7 @@ public class TerminalConnection implements TtyConnection {
             });
 
             eventDecoder = new TtyEventDecoder(3, 26, 4);
-            decoder = new BinaryDecoder(1024, StandardCharsets.UTF_8, eventDecoder);
+            decoder = new BinaryDecoder(StandardCharsets.UTF_8, eventDecoder);
             stdOut = new TtyOutputMode(new BinaryEncoder(StandardCharsets.UTF_8, this::write));
         }
         catch(IOException e) {
@@ -138,22 +140,22 @@ public class TerminalConnection implements TtyConnection {
     }
 
     @Override
+    public String terminalType() {
+        return terminal.getName();
+    }
+
+    @Override
     public Size size() {
         return terminal.getSize();
     }
 
     @Override
-    public String term() {
-        return terminal.getName();
-    }
-
-    @Override
-    public Consumer<String> getTermHandler() {
+    public Consumer<String> getTerminalTypeHandler() {
         return termHandler;
     }
 
     @Override
-    public void setTermHandler(Consumer<String> handler) {
+    public void setTerminalTypeHandler(Consumer<String> handler) {
         termHandler = handler;
     }
 

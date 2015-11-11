@@ -67,8 +67,8 @@ public class DeletePrevChar implements Action {
             buf.delete(-1);
             //buf.moveCursor(-1);
             interaction.refresh(buf);
-            interaction.resume();
         }
+        interaction.resume();
     }
 
     private void deleteWithMaskEnabled(ConsoleBuffer consoleBuffer) {

@@ -257,7 +257,7 @@ public class ExecPty implements Pty {
     }
 
     static Size doGetSize(String cfg) throws IOException {
-        return new Size(doGetInt("rows", cfg), doGetInt("columns", cfg));
+        return new Size(doGetInt("columns", cfg), doGetInt("rows", cfg));
     }
 
     static int doGetInt(String name, String cfg) throws IOException {

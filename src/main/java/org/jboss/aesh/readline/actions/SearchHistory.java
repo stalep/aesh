@@ -19,7 +19,6 @@
  */
 package org.jboss.aesh.readline.actions;
 
-import org.jboss.aesh.console.InputProcessor;
 import org.jboss.aesh.history.SearchDirection;
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.KeyEvent;
@@ -28,11 +27,16 @@ import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.readline.SearchAction;
 import org.jboss.aesh.terminal.Key;
 import org.jboss.aesh.util.ANSI;
+import org.jboss.aesh.util.LoggerUtil;
+
+import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
 abstract class SearchHistory implements SearchAction {
+
+    private static final Logger LOGGER = LoggerUtil.getLogger(SearchHistory.class.getName());
 
     private SearchAction.Status status = Status.SEARCH_NOT_STARTED;
     private StringBuilder searchArgument;
@@ -54,7 +58,8 @@ abstract class SearchHistory implements SearchAction {
          else if(action instanceof Interrupt) {
              status = Status.SEARCH_INTERRUPT;
          }
-         else if(action instanceof Enter) {
+         else if(action != null &&
+                 action.name().equals("accept-line")) {
              status = Status.SEARCH_END;
          }
          else if(action instanceof ReverseSearchHistory) {
@@ -98,7 +103,6 @@ abstract class SearchHistory implements SearchAction {
 
        if(status == Status.SEARCH_INTERRUPT) {
            interaction.refresh(new LineBuffer());
-           interaction.resume();
            /*
            inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
            inputProcessor.getBuffer().setBufferLine("");
@@ -149,6 +153,10 @@ abstract class SearchHistory implements SearchAction {
                    break;
                case SEARCH_END:
                    if(searchResult != null) {
+                       LineBuffer buf = new LineBuffer().insert(searchResult);
+                       interaction.refresh(buf);
+                       LOGGER.info("sending new-line to queueEvent");
+                       interaction.queueEvent(new int[]{'\n'});
                        /*
                        inputProcessor.getBuffer().moveCursor(-interaction.buffer().getCursor());
                        inputProcessor.getBuffer().setBufferLine( searchResult);
@@ -163,6 +171,7 @@ abstract class SearchHistory implements SearchAction {
                        break;
                    }
                    else {
+                       interaction.refresh(new LineBuffer());
                        /*
                        inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
                        inputProcessor.getBuffer().setBufferLine("");
@@ -172,12 +181,15 @@ abstract class SearchHistory implements SearchAction {
                    break;
                case SEARCH_EXIT:
                    if(searchResult != null) {
+                       LineBuffer buf = new LineBuffer().insert(searchResult);
+                       interaction.refresh(buf);
                        /*
                        inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
                        inputProcessor.getBuffer().setBufferLine(searchResult);
                        */
                    }
                    else {
+                       interaction.refresh(new LineBuffer());
                        /*
                        inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
                        inputProcessor.getBuffer().setBufferLine("");
@@ -185,6 +197,8 @@ abstract class SearchHistory implements SearchAction {
                    }
                    break;
                case SEARCH_MOVE_NEXT:
+                   LineBuffer buf = new LineBuffer().insert(interaction.getHistory().getNextFetch());
+                   interaction.refresh(buf);
                    /*
                    searchResult = inputProcessor.getHistory().getNextFetch();
                    inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
@@ -192,6 +206,8 @@ abstract class SearchHistory implements SearchAction {
                    */
                    break;
                case SEARCH_MOVE_PREV:
+                   //LineBuffer buf = new LineBuffer().insert(interaction.getHistory().getNextFetch());
+                   interaction.refresh(new LineBuffer().insert(interaction.getHistory().getNextFetch()));
                    /*
                    searchResult = inputProcessor.getHistory().getPreviousFetch();
                    inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
@@ -199,50 +215,63 @@ abstract class SearchHistory implements SearchAction {
                    */
                    break;
                case SEARCH_MOVE_RIGHT:
+                   interaction.refresh(new LineBuffer().insert(interaction.getHistory().getNextFetch()));
                    /*
                    inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
                    inputProcessor.getBuffer().setBufferLine(searchResult);
                    */
            }
 
-           /*
            if(!keepFocus()) {
                searchArgument = null;
                searchResult = null;
+               /*
                inputProcessor.getBuffer().drawLine();
                inputProcessor.getBuffer().out().print(Buffer.printAnsi((inputProcessor.getBuffer().getBuffer().getPrompt().getLength() + 1) + "G"));
                if(status == Status.SEARCH_MOVE_RIGHT)
                    inputProcessor.getBuffer().moveCursor(inputProcessor.getBuffer().getBuffer().getLine().length());
                inputProcessor.getBuffer().out().flush();
+               */
            }
            else {
                if(searchArgument == null || searchArgument.length() == 0) {
                    if(searchResult != null)
-                       printSearch("", searchResult, inputProcessor);
+                       printSearch("", searchResult, interaction);
                    else
-                       printSearch("", "", inputProcessor);
+                       printSearch("", "", interaction);
                }
                else {
                    if(searchResult != null && searchResult.length() > 0)
-                       printSearch(searchArgument.toString(), searchResult, inputProcessor);
+                       printSearch(searchArgument.toString(), searchResult, interaction);
                }
            }
-           */
        }
+       interaction.resume();
     }
 
-    private void printSearch(String searchTerm, String result, InputProcessor inputProcessor) {
+    private void printSearch(String searchTerm, String result, Readline.Interaction interaction) {
         //cursor should be placed at the index of searchTerm
         int cursor = result.indexOf(searchTerm);
 
         StringBuilder builder;
-        if(inputProcessor.getHistory().getSearchDirection() == SearchDirection.REVERSE)
+        if(interaction.getHistory().getSearchDirection() == SearchDirection.REVERSE)
             builder = new StringBuilder("(reverse-i-search) `");
         else
             builder = new StringBuilder("(forward-i-search) `");
         builder.append(searchTerm).append("': ");
         cursor += builder.length();
         builder.append(result);
+        interaction.disablePrompt();
+        if(searchTerm.length() < 1) {
+            interaction.connection().write(ANSI.CURSOR_START);
+            interaction.connection().write(ANSI.START + "2K");
+        }
+        LOGGER.info("printing: "+builder.toString());
+        LineBuffer buf = new LineBuffer().insert(builder.toString());
+        interaction.refresh(buf);
+        interaction.enablePrompt();
+        //interaction.resume();
+        /*
         inputProcessor.getBuffer().getBuffer().disablePrompt(true);
         inputProcessor.getBuffer().moveCursor(-inputProcessor.getBuffer().getBuffer().getMultiCursor());
         inputProcessor.getBuffer().out().print(ANSI.CURSOR_START);
@@ -252,5 +281,6 @@ abstract class SearchHistory implements SearchAction {
         inputProcessor.getBuffer().drawLine(true, false);
         inputProcessor.getBuffer().getBuffer().disablePrompt(false);
         inputProcessor.getBuffer().out().flush();
+        */
     }
 }

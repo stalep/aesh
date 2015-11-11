@@ -42,7 +42,7 @@ public class KeyMapperTest {
     @Test
     public void testQuoteMapKeys() {
         if(Config.isOSPOSIXCompatible()) {
-            EditModeBuilder builder = new EditModeBuilder();
+            EditModeBuilder builder = EditModeBuilder.builder();
             InputrcParser.parseLine("\"\\M-a\":   meta", builder);
             assertEquals(builder.create().parse(Key.META_a).name(), new NoAction().name());
 
@@ -70,40 +70,40 @@ public class KeyMapperTest {
         if(Config.isOSPOSIXCompatible()) {
 
 
-            EditModeBuilder builder = new EditModeBuilder();
+            EditModeBuilder builder = EditModeBuilder.builder();
 
             builder.addAction(InputrcParser.mapKeys("M-a"), "meta");
             assertEquals(builder.create().parse(Key.META_a).name(), new NoAction().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("M-[D"), "backward-char");
             assertEquals(builder.create().parse(Key.LEFT).name(), new BackwardChar().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("M-[C"), "forward-char");
             assertEquals(builder.create().parse(Key.RIGHT).name(), new ForwardChar().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("M-[A"), "previous-history");
             assertEquals(builder.create().parse(Key.UP).name(), new PrevHistory().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("M-[B"), "next-history");
             assertEquals(builder.create().parse(Key.DOWN).name(), new NextHistory().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("M-C-d"), "backward-char");
             assertEquals(builder.create().parse(Key.META_CTRL_D).name(), new BackwardChar().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("C-M-D"), "forward-char");
             assertEquals(builder.create().parse(Key.META_CTRL_D).name(), new ForwardChar().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("C-a"), "beginning-of-line");
             assertEquals(builder.create().parse(Key.CTRL_A).name(), new BeginningOfLine().name());
 
-            builder = new EditModeBuilder();
+            builder = EditModeBuilder.builder();
             builder.addAction(InputrcParser.mapKeys("C-?"), "backward-delete-char");
             assertEquals(builder.create().parse(Key.BACKSPACE).name(), new DeletePrevChar().name());
         }

@@ -82,7 +82,7 @@ public class DumbTerminal extends AbstractTerminal {
     }
 
     public void setSize(Size sz) {
-        size = new Size(sz.getHeight(),sz.getWidth());
+        size = new Size(sz.getWidth(),sz.getHeight());
     }
 
     public void close() throws IOException {

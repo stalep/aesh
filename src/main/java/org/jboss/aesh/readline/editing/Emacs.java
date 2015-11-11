@@ -21,19 +21,16 @@ package org.jboss.aesh.readline.editing;
 
 import org.jboss.aesh.readline.Action;
 import org.jboss.aesh.readline.ActionEvent;
-import org.jboss.aesh.readline.Function;
 import org.jboss.aesh.readline.KeyEvent;
 import org.jboss.aesh.readline.Variable;
 import org.jboss.aesh.readline.actions.ActionMapper;
 import org.jboss.aesh.terminal.Key;
-import org.jboss.aesh.util.LoggerUtil;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
@@ -45,20 +42,21 @@ public class Emacs implements EditMode {
     private Map<Key,Action> actions;
     private Map<Variable,String> variables;
     private Map<KeyEvent,Action> keyEventActions;
-    private Map<Key, Function> functions;
 
     //counting how many times eof been pressed
     protected int eofCounter;
     //default value
     private int ignoreEof = 0;
 
-    private static final Logger LOGGER = LoggerUtil.getLogger(Emacs.class.getName());
-
     Emacs() {
         actions = new EnumMap<>(Key.class);
         variables = new EnumMap<>(Variable.class);
         keyEventActions = new HashMap<>();
-         functions = new EnumMap<>(Key.class);
+    }
+
+    protected void clearDefaultActions() {
+        actions.clear();
+        keyEventActions.clear();
     }
 
     @Override
@@ -164,16 +162,4 @@ public class Emacs implements EditMode {
         }
         return action;
     }
-
-     public void addFunction(Key key, Function action) {
-        functions.put(key, action);
-    }
-
-    public Function parseTest(KeyEvent event) {
-        if(event instanceof Key)
-            return functions.get(event);
-        else
-            return null;
-    }
-
 }

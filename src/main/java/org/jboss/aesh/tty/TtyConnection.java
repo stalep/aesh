@@ -33,67 +33,67 @@ import java.util.function.Consumer;
  */
 public interface TtyConnection {
 
-  Size size();
+    String terminalType();
 
-  String term();
+    Size size();
 
-  Consumer<String> getTermHandler();
+    Consumer<String> getTerminalTypeHandler();
 
-  void setTermHandler(Consumer<String> handler);
+    void setTerminalTypeHandler(Consumer<String> handler);
 
-  Consumer<Size> getSizeHandler();
+    Consumer<Size> getSizeHandler();
 
-  void setSizeHandler(Consumer<Size> handler);
+    void setSizeHandler(Consumer<Size> handler);
 
-  BiConsumer<TtyEvent, Integer> getEventHandler();
+    BiConsumer<TtyEvent, Integer> getEventHandler();
 
-  void setEventHandler(BiConsumer<TtyEvent, Integer> handler);
+    void setEventHandler(BiConsumer<TtyEvent, Integer> handler);
 
-  Consumer<int[]> getStdinHandler();
+    Consumer<int[]> getStdinHandler();
 
-  /**
-   * Set the read handler on this connection.
-   *
-   * @param handler the event handler
-   */
-  void setStdinHandler(Consumer<int[]> handler);
+    /**
+     * Set the read handler on this connection.
+     *
+     * @param handler the event handler
+     */
+    void setStdinHandler(Consumer<int[]> handler);
 
-  /**
-   * @return the stdout handler of this connection
-   */
-  Consumer<int[]> stdoutHandler();
+    /**
+     * @return the stdout handler of this connection
+     */
+    Consumer<int[]> stdoutHandler();
 
-  void setCloseHandler(Consumer<Void> closeHandler);
+    void setCloseHandler(Consumer<Void> closeHandler);
 
-  Consumer<Void> getCloseHandler();
+    Consumer<Void> getCloseHandler();
 
-  void close();
+    void close();
 
-  /**
-   * Write a string to the client.
-   *
-   * @param s the string to write
-   */
-  default TtyConnection write(String s) {
-    int[] codePoints = Parser.toCodePoints(s);
-    stdoutHandler().accept(codePoints);
-    return this;
-  }
+    /**
+     * Write a string to the client.
+     *
+     * @param s the string to write
+     */
+    default TtyConnection write(String s) {
+        int[] codePoints = Parser.toCodePoints(s);
+        stdoutHandler().accept(codePoints);
+        return this;
+    }
 
-  /**
-   * Schedule a task for execution.
-   *
-   * @param task the task to schedule
-   */
-  void execute(Runnable task);
+    /**
+     * Schedule a task for execution.
+     *
+     * @param task the task to schedule
+     */
+    void execute(Runnable task);
 
-  /**
-   * Schedule a task for execution.
-   *
-   * @param task the task to schedule
-   * @param delay the delay
-   * @param unit the time unit
-   */
-  void schedule(Runnable task, long delay, TimeUnit unit);
+    /**
+     * Schedule a task for execution.
+     *
+     * @param task the task to schedule
+     * @param delay the delay
+     * @param unit the time unit
+     */
+    void schedule(Runnable task, long delay, TimeUnit unit);
 
 }

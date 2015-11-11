@@ -48,7 +48,7 @@ public class InMemoryHistory extends History {
             this.maxSize = Integer.MAX_VALUE;
         else
             this.maxSize = maxSize;
-        historyList = new ArrayList<String>();
+        historyList = new ArrayList<>();
         current = "";
     }
 

@@ -145,8 +145,8 @@ public class WinSysTerminal extends AbstractTerminal {
     }
 
     public Size getSize() {
-        return new Size(WindowsSupport.getWindowsTerminalHeight(),
-                        WindowsSupport.getWindowsTerminalWidth());
+        return new Size(WindowsSupport.getWindowsTerminalWidth(),
+                WindowsSupport.getWindowsTerminalHeight());
     }
 
     public void setSize(Size size) {

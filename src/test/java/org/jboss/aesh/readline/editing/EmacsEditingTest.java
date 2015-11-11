@@ -21,7 +21,11 @@ package org.jboss.aesh.readline.editing;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.aesh.console.AeshConsoleBufferBuilder;
 import org.jboss.aesh.console.AeshInputProcessorBuilder;
@@ -34,7 +38,10 @@ import org.jboss.aesh.console.Shell;
 import org.jboss.aesh.console.TestShell;
 import org.jboss.aesh.console.settings.Settings;
 import org.jboss.aesh.console.settings.SettingsBuilder;
+import org.jboss.aesh.readline.Readline;
 import org.jboss.aesh.terminal.Key;
+import org.jboss.aesh.terminal.TerminalConnection;
+import org.jboss.aesh.util.Helper;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -44,6 +51,8 @@ import static org.junit.Assert.assertEquals;
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
 public class EmacsEditingTest extends BaseConsoleTest {
+
+    private List<String> inputs = new ArrayList<>();
 
     @Test
     public void testEmacs() throws Exception {
@@ -61,7 +70,8 @@ public class EmacsEditingTest extends BaseConsoleTest {
     }
 
     @Test
-    public void testSearch() throws IOException {
+    public void testSearch() throws IOException, InterruptedException {
+        /*
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         Settings settings = new SettingsBuilder()
@@ -83,19 +93,48 @@ public class EmacsEditingTest extends BaseConsoleTest {
                 .consoleBuffer(consoleBuffer)
                 .settings(settings)
                 .create();
+                */
 
-        consoleBuffer.writeString("asdf jkl");
-        inputProcessor.parseOperation(Key.ENTER);
 
-        consoleBuffer.writeString("footing");
-        inputProcessor.parseOperation(Key.ENTER);
+        PipedOutputStream outputStream = new PipedOutputStream();
+        PipedInputStream pipedInputStream = new PipedInputStream(outputStream);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-        inputProcessor.parseOperation(Key.CTRL_R);
-        inputProcessor.parseOperation(Key.a);
+        TerminalConnection connection = new TerminalConnection(pipedInputStream, byteArrayOutputStream);
 
-        assertEquals("asdf jkl",
-                inputProcessor.parseOperation(Key.ENTER));
+        Readline readline = new Readline();
 
+        readline.readline(connection, "", this::appendLine);
+
+        outputStream.write("asdf jkl\n".getBytes());
+        outputStream.flush();
+
+        Thread.sleep(50);
+
+        readline.readline(connection, "", this::appendLine);
+
+        outputStream.write("footing\n".getBytes());
+        outputStream.flush();
+
+        Thread.sleep(50);
+
+        readline.readline(connection, "", this::appendLine);
+
+        outputStream.write(Key.CTRL_R.getAsChar());
+        outputStream.write(Key.a.getAsChar());
+        outputStream.write(Key.ENTER.getAsChar());
+        outputStream.flush();
+
+        Thread.sleep(50);
+
+        assertEquals(inputs.get(0), "asdf jkl");
+        assertEquals(inputs.get(1), "footing");
+        assertEquals(inputs.get(2), "asdf jkl");
+
+    }
+
+    private void appendLine(String line) {
+        inputs.add(line);
     }
 
     @Test

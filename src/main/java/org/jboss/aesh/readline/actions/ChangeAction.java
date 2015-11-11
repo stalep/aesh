@@ -77,7 +77,7 @@ abstract class ChangeAction extends MovementAction {
                 interaction.getPasteManager().addText(
                         Arrays.copyOfRange(buf.toArray(), oldCursor, cursor));
                 //delete buffer
-                buf.delete(oldCursor - cursor);
+                buf.delete(cursor - oldCursor);
             }
 
             //TODO: must check if we're in edit mode

@@ -17,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jboss.aesh.tty;
 
 import org.jboss.aesh.console.settings.Settings;
@@ -35,8 +34,6 @@ import java.io.PipedOutputStream;
  * @author <a href="mailto:stale.pedersen@jboss.org">Ståle W. Pedersen</a>
  */
 public class TestTerminalConnection {
-
-
     @Test
     public void simpleTest() throws IOException, InterruptedException {
         PipedOutputStream outputStream = new PipedOutputStream();
@@ -60,6 +57,8 @@ public class TestTerminalConnection {
             }
         });
 
+        //byte[] out = new byte[] {100,101 };
+        //outputStream.write(out);
         outputStream.write(("testing....\n").getBytes());
         outputStream.flush();
 

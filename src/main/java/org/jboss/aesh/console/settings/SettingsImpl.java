@@ -176,14 +176,14 @@ public class SettingsImpl implements Settings {
     public EditMode getEditMode() {
         if(readInputrc) {
             try {
-                return new EditModeBuilder().parseInputrc(new FileInputStream(getInputrc())).create();
+                return EditModeBuilder.builder().parseInputrc(new FileInputStream(getInputrc())).create();
             }
             catch(FileNotFoundException e) {
-                return new EditModeBuilder(getMode()).create();
+                return EditModeBuilder.builder(getMode()).create();
             }
         }
         else
-            return new EditModeBuilder(getMode()).create();
+            return EditModeBuilder.builder(getMode()).create();
     }
 
     /**
