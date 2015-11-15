@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import org.jboss.aesh.util.LoggerUtil;
 
 /**
- * Manages the JLine shutdown-hook thread and tasks to execute on shutdown.
+ * Manages the shutdown-hook thread and tasks to execute on shutdown.
  *
  * @author <a href="mailto:jason@planet57.com">Jason Dillon</a>
  */

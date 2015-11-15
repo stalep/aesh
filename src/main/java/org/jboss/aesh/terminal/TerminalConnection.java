@@ -61,7 +61,6 @@ public class TerminalConnection implements TtyConnection {
     private Attributes attributes;
     private BiConsumer<TtyEvent, Integer> eventHandler;
 
-
     public TerminalConnection(InputStream inputStream, OutputStream outputStream) {
         try {
             terminal = TerminalBuilder.builder()

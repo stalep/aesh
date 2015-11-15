@@ -30,7 +30,7 @@ import org.jboss.aesh.readline.KeyEvent;
  */
 public enum Key implements KeyEvent {
 
-    UNKNOWN(new int[]{0}),
+    CTRL_AT(new int[]{0}),
     CTRL_A(new int[]{1}),
     CTRL_B(new int[]{2}),
     CTRL_C(new int[]{3}),
@@ -299,7 +299,7 @@ public enum Key implements KeyEvent {
             if(key.equalTo(otherValues))
                 return key;
         }
-        return Key.UNKNOWN;
+        return null;
     }
 
     public static Key findStartKey(int[] input) {
@@ -325,7 +325,7 @@ public enum Key implements KeyEvent {
         else if(Key.WINDOWS_ESC.inputStartsWithKey(input))
             return Key.WINDOWS_ESC;
 
-        return Key.UNKNOWN;
+        return null;
     }
 
     public static Key findStartKey(int[] input, int position) {
@@ -351,7 +351,7 @@ public enum Key implements KeyEvent {
         else if(Key.WINDOWS_ESC.inputStartsWithKey(input, position))
             return Key.WINDOWS_ESC;
 
-        return Key.UNKNOWN;
+        return null;
     }
 
     public boolean inputStartsWithKey(int[] input) {
@@ -421,8 +421,8 @@ public enum Key implements KeyEvent {
     public static KeyMap<KeyEvent> getKeyMap() {
         if (keyMap == null) {
             keyMap = new KeyMap<>();
-            keyMap.setUnicode(Key.UNKNOWN);
-            keyMap.setNomatch(Key.UNKNOWN);
+            //keyMap.setUnicode(Key.UNKNOWN);
+            //keyMap.setNomatch(Key.UNKNOWN);
             for (int i = 1; i < 128; i++) {
                 Key key = Key.getKey(new int[] { i });
                 keyMap.bind(key, key.getKeyValuesAsString());
