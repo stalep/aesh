@@ -365,6 +365,10 @@ public class ReadlineConsole implements Console, Consumer<Connection> {
         this.completions.addAll(completions);
     }
 
+    public Readline readline() {
+        return readline;
+    }
+
     private FileAccessPermission buildPermission(org.aesh.command.settings.FileAccessPermission historyFilePermission) {
         if (historyFilePermission == null) {
             return null;
